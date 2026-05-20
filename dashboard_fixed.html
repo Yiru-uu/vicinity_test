@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>附近生物图鉴 · 数据看板</title>
+<!-- 引入Supabase客户端 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #060810;
+    --surface: #0d1117;
+    --surface2: #141820;
+    --surface3: #1c2130;
+    --border: #1e2535;
+    --border2: #2a3348;
+    --accent: #4f9cf9;
+    --accent2: #63e8b0;
+    --accent3: #f7b731;
+    --text: #d8dde8;
+    --text-dim: #7a8499;
+    --text-muted: #3d4558;
+    --guardian: #63e8b0;
+    --hermit: #a78bfa;
+    --nomad: #4f9cf9;
+    --passerby: #f7b731;
+    --butterfly: #f97316;
+    --red: #f25c5c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(79,156,249,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,156,249,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(6,8,16,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .header-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent2);
+    box-shadow: 0 0 8px var(--accent2);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .header-title {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    color: var(--text);
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .header-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .btn-refresh {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text-dim);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+
+  .btn-refresh:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── LAYOUT ── */
+  .main {
+    position: relative;
+    z-index: 1;
+    padding: 24px;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  /* ── KPI ROW ── */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--card-color, var(--accent));
+  }
+
+  .kpi-card:hover { border-color: var(--border2); }
+
+  .kpi-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .kpi-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+
+  .kpi-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .kpi-trend {
+    font-size: 11px;
+    color: var(--accent2);
+  }
+
+  /* ── GRID ── */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .grid-main {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .grid-2, .grid-3, .grid-main { grid-template-columns: 1fr; }
+  }
+
+  /* ── PANEL ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px;
+    position: relative;
+  }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .panel-title {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  .panel-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  /* ── PERSONALITY BARS ── */
+  .personality-bars { display: flex; flex-direction: column; gap: 12px; }
+
+  .pbar-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 52px 40px;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .pbar-name { font-size: 12px; color: var(--text-dim); white-space: nowrap; }
+
+  .pbar-track {
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+
+  .pbar-fill {
+    height: 100%;
+    border-radius: 1px;
+    transition: width 0.8s cubic-bezier(0.16,1,0.3,1);
+    width: 0%;
+    position: relative;
+  }
+
+  .pbar-fill::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: inherit;
+    filter: brightness(1.5);
+    box-shadow: 0 0 8px currentColor;
+  }
+
+  .pbar-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: right;
+  }
+
+  .pbar-pct {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: right;
+  }
+
+  /* ── CHART CANVAS ── */
+  .chart-wrap {
+    position: relative;
+    height: 200px;
+  }
+
+  .chart-wrap-sm {
+    position: relative;
+    height: 160px;
+  }
+
+  .chart-wrap-lg {
+    position: relative;
+    height: 240px;
+  }
+
+  /* ── CITY TABLE ── */
+  .city-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+
+  .city-table th {
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .city-table td {
+    padding: 10px;
+    border-bottom: 1px solid rgba(30,37,53,0.5);
+    vertical-align: middle;
+  }
+
+  .city-table tr:last-child td { border-bottom: none; }
+  .city-table tr:hover td { background: var(--surface2); }
+
+  .city-name { color: var(--text); font-weight: 500; }
+  .city-count { font-family: 'JetBrains Mono', monospace; color: var(--text-dim); }
+
+  .type-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10px;
+    border-radius: 0;
+    font-weight: 500;
+  }
+
+  /* ── RESPONSE FEED ── */
+  .feed-list { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; }
+
+  .feed-item {
+    padding: 12px 14px;
+    background: var(--surface2);
+    border-left: 2px solid var(--border2);
+    font-size: 12px;
+    color: var(--text-dim);
+    animation: slideIn 0.4s ease;
+    transition: border-color 0.2s;
+  }
+
+  .feed-item:hover { border-color: var(--accent); }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .feed-meta {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 4px;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .feed-text {
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* ── MINI HEATMAP ── */
+  .heatmap-row { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+
+  .heatmap-cell {
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    background: var(--surface2);
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .heatmap-cell:hover { transform: scale(1.3); z-index: 10; }
+
+  .heatmap-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* ── Q BREAKDOWN ── */
+  .q-breakdown { display: flex; flex-direction: column; gap: 16px; }
+
+  .q-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+
+  .q-item-label { font-size: 11px; color: var(--text-dim); }
+  .q-item-n { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); }
+
+  .opt-bars { display: flex; flex-direction: column; gap: 4px; }
+
+  .opt-bar-row {
+    display: grid;
+    grid-template-columns: 20px 1fr 40px;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .opt-key-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .opt-bar-track { height: 6px; background: var(--surface2); border-radius: 1px; overflow: hidden; }
+  .opt-bar-fill { height: 100%; background: var(--accent); border-radius: 1px; transition: width 0.6s; }
+  .opt-bar-pct { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); text-align: right; }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 3px; height: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* Empty state */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 120px;
+    color: var(--text-muted);
+    font-size: 12px;
+    gap: 8px;
+    text-align: center;
+  }
+
+  .empty-icon { font-size: 28px; opacity: 0.4; }
+
+  /* Color classes for types */
+  .c-guardian { color: var(--guardian); }
+  .c-hermit { color: var(--hermit); }
+  .c-nomad { color: var(--nomad); }
+  .c-passerby { color: var(--passerby); }
+  .c-butterfly { color: var(--butterfly); }
+
+  .bg-guardian { background: var(--guardian); }
+  .bg-hermit { background: var(--hermit); }
+  .bg-nomad { background: var(--nomad); }
+  .bg-passerby { background: var(--passerby); }
+  .bg-butterfly { background: var(--butterfly); }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="header">
+  <div class="header-brand">
+    <div class="header-dot"></div>
+    <span class="header-title">附近生物图鉴 · 实时数据看板</span>
+  </div>
+  <div class="header-right">
+    <span class="header-time" id="clock">00:00:00</span>
+    <button class="btn-refresh" onclick="refreshData()">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+        <path d="M14 8A6 6 0 112 8M14 8V4M14 8H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      刷新
+    </button>
+  </div>
+</header>
+
+<div class="main">
+  <!-- ── KPI ROW ── -->
+  <div class="kpi-row" id="kpi-row">
+    <div class="kpi-card" style="--card-color: var(--accent2)">
+      <div class="kpi-label">总答题人数</div>
+      <div class="kpi-value" id="kpi-total">0</div>
+      <div class="kpi-trend" id="kpi-trend">↑ 今日新增 0</div>
+    </div>
+    <div class="kpi-card" style="--card-color: var(--accent)">
+      <div class="kpi-label">完整完成率</div>
+      <div class="kpi-value" id="kpi-completion">0%</div>
+      <div class="kpi-sub">完整作答 / 总答题</div>
+    </div>
+    <div class="kpi-card" style="--card-color: var(--accent3)">
+      <div class="kpi-label">最热人格</div>
+      <div class="kpi-value" id="kpi-top-type" style="font-size:16px;margin-top:4px">—</div>
+      <div class="kpi-sub" id="kpi-top-pct">占比 —</div>
+    </div>
+    <div class="kpi-card" style="--card-color: var(--hermit)">
+      <div class="kpi-label">最冷人格</div>
+      <div class="kpi-value" id="kpi-bot-type" style="font-size:16px;margin-top:4px">—</div>
+      <div class="kpi-sub" id="kpi-bot-pct">占比 —</div>
+    </div>
+    <div class="kpi-card" style="--card-color: var(--butterfly)">
+      <div class="kpi-label">开放题回答率</div>
+      <div class="kpi-value" id="kpi-open">0%</div>
+      <div class="kpi-sub">填写了 Q26 的比例</div>
+    </div>
+  </div>
+
+  <!-- ── PERSONALITY + TIME CHART ── -->
+  <div class="grid-main">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">人格分布</div>
+        <div class="panel-badge" id="badge-total">N=0</div>
+      </div>
+      <div class="personality-bars" id="personality-bars">
+        <div class="empty-state"><div class="empty-icon">📊</div><div>暂无数据</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">答题趋势（近7天）</div>
+      </div>
+      <div class="chart-wrap-lg">
+        <canvas id="trend-chart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CITY + PIE ── -->
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">城市分布</div>
+        <div class="panel-badge">基于 IP 地理位置</div>
+      </div>
+      <div id="city-content">
+        <div class="empty-state"><div class="empty-icon">🗺️</div><div>暂无城市数据</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">人格占比</div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="pie-chart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Q ANALYSIS ── -->
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">关键题目分析 — Q7 消费方式</div>
+      </div>
+      <div id="q7-bars" class="q-breakdown"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">关键题目分析 — Q23 邻居 vs 兴趣</div>
+      </div>
+      <div id="q23-bars" class="q-breakdown"></div>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-bottom:16px">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Q17 陌生人互动难度</div>
+      </div>
+      <div class="chart-wrap-sm">
+        <canvas id="q17-chart"></canvas>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Q20 附近正在消失？</div>
+      </div>
+      <div class="chart-wrap-sm">
+        <canvas id="q20-chart"></canvas>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Q25 未来想建立连接？</div>
+      </div>
+      <div class="chart-wrap-sm">
+        <canvas id="q25-chart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RATINGS + FEED ── -->
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Q24 态度量表平均分</div>
+        <div class="panel-badge">1-5分</div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="rating-chart"></canvas>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Q26 最新开放题回答</div>
+        <div class="panel-badge" id="open-count">0条</div>
+      </div>
+      <div class="feed-list" id="feed-list">
+        <div class="empty-state"><div class="empty-icon">💬</div><div>暂无开放题回答</div></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════
+const TYPE_LABELS = {
+  guardian: '守望者', hermit: '独行侠', nomad: '游牧人', passerby: '路人甲', butterfly: '社交花'
+};
+const TYPE_COLORS = {
+  guardian: '#63e8b0', hermit: '#a78bfa', nomad: '#4f9cf9', passerby: '#f7b731', butterfly: '#f97316'
+};
+const TYPE_ORDER = ['guardian', 'hermit', 'nomad', 'passerby', 'butterfly'];
+
+// Chart defaults
+Chart.defaults.color = '#7a8499';
+Chart.defaults.borderColor = '#1e2535';
+Chart.defaults.font.family = "'JetBrains Mono', monospace";
+Chart.defaults.font.size = 11;
+
+let charts = {};
+
+// ══════════════════════════════════════════════
+// SUPABASE 初始化
+// ══════════════════════════════════════════════
+const supabaseUrl = "https://fpacloguwmxnympiurlr.supabase.co";
+const supabaseKey = "sb_publishable_8eBpItKcvs9BiZPLtZnTlw_G-NGQNIP";
+const sb = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+// ══════════════════════════════════════════════
+// DATA LOADING
+// ══════════════════════════════════════════════
+async function loadData() {
+  try {
+    // 从Supabase获取答题数据（请确保表名和字段名与实际一致）
+    // 这里假设数据表名为survey_results，可根据实际情况修改
+    const { data, error } = await sb
+      .from('survey_results')
+      .select('*')
+      .order('ts', { ascending: false });
+
+    if (error) {
+      console.error('Supabase数据获取失败:', error);
+      return [];
+    }
+    
+    return data || [];
+  } catch(e) { 
+    console.error('数据加载异常:', e);
+    return []; 
+  }
+}
+
+async function refreshData() {
+  const data = await loadData();
+  render(data);
+  // 刷新时同步更新时钟
+  updateClock();
+}
+
+// ══════════════════════════════════════════════
+// RENDER ALL
+// ══════════════════════════════════════════════
+function render(data) {
+  const total = data.length;
+
+  // KPIs
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('badge-total').textContent = `N=${total}`;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayCount = data.filter(d => d.ts >= today.getTime()).length;
+  document.getElementById('kpi-trend').textContent = `↑ 今日新增 ${todayCount}`;
+
+  const complete = data.filter(d => d.answers && d.answers.q25).length;
+  document.getElementById('kpi-completion').textContent = total ? Math.round(complete/total*100)+'%' : '0%';
+
+  const openAnswered = data.filter(d => d.answers && d.answers.q26 && d.answers.q26.length > 5).length;
+  document.getElementById('kpi-open').textContent = total ? Math.round(openAnswered/total*100)+'%' : '0%';
+  document.getElementById('open-count').textContent = `${openAnswered}条`;
+
+  // Type counts
+  const typeCounts = {};
+  TYPE_ORDER.forEach(t => typeCounts[t] = 0);
+  data.forEach(d => { if (d.winner) typeCounts[d.winner] = (typeCounts[d.winner]||0)+1; });
+  const sorted = Object.entries(typeCounts).sort((a,b) => b[1]-a[1]);
+
+  if (sorted.length && total > 0) {
+    const [topType, topN] = sorted[0];
+    const [botType, botN] = sorted[sorted.length-1];
+    document.getElementById('kpi-top-type').textContent = TYPE_LABELS[topType] || topType;
+    document.getElementById('kpi-top-pct').textContent = `占比 ${Math.round(topN/total*100)}%`;
+    document.getElementById('kpi-top-type').className = `kpi-value c-${topType}`;
+    document.getElementById('kpi-bot-type').textContent = TYPE_LABELS[botType] || botType;
+    document.getElementById('kpi-bot-pct').textContent = `占比 ${Math.round(botN/total*100)}%`;
+    document.getElementById('kpi-bot-type').className = `kpi-value c-${botType}`;
+  }
+
+  renderPersonalityBars(typeCounts, total);
+  renderTrendChart(data);
+  renderPieChart(typeCounts);
+  renderCityTable(data, typeCounts);
+  renderQBars('q7', data, ['外卖神','应急出门','随缘','附近守护'], ['A','B','C','D'], 'q7-bars');
+  renderQBars('q23', data, ['兴趣>距离','近邻更好','享受孤独','全都要'], ['A','B','C','D'], 'q23-bars');
+  renderRadarChart('q17', data, ['非常困难','比较困难','一般','比较容易','非常容易'], 'q17-chart');
+  renderRadarChart('q20', data, ['加速消失','缓慢消失','无变化','没有消失'], 'q20-chart');
+  renderRadarChart('q25', data, ['非常想','比较想','不确定','不太想','完全不想'], 'q25-chart');
+  renderRatingChart(data);
+  renderFeed(data);
+}
+
+// ── Personality bars ──
+function renderPersonalityBars(counts, total) {
+  const el = document.getElementById('personality-bars');
+  if (!total) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><div>暂无数据</div></div>'; return; }
+  const sorted = TYPE_ORDER.map(t => [t, counts[t]||0]).sort((a,b)=>b[1]-a[1]);
+  el.innerHTML = sorted.map(([t, n]) => {
+    const pct = Math.round(n/total*100);
+    return `<div class="pbar-row">
+      <div class="pbar-name c-${t}">${TYPE_LABELS[t]}</div>
+      <div class="pbar-track"><div class="pbar-fill bg-${t}" style="width:0%" data-pct="${pct}"></div></div>
+      <div class="pbar-count">${n}</div>
+      <div class="pbar-pct">${pct}%</div>
+    </div>`;
+  }).join('');
+  setTimeout(() => {
+    el.querySelectorAll('.pbar-fill').forEach(b => b.style.width = b.dataset.pct+'%');
+  }, 100);
+}
+
+// ── Trend chart ──
+function renderTrendChart(data) {
+  const ctx = document.getElementById('trend-chart').getContext('2d');
+  const days = [];
+  const dayCounts = {};
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate()-i); d.setHours(0,0,0,0);
+    const label = `${d.getMonth()+1}/${d.getDate()}`;
+    days.push(label);
+    dayCounts[label] = 0;
+  }
+  data.forEach(rec => {
+    const d = new Date(rec.ts); d.setHours(0,0,0,0);
+    const label = `${d.getMonth()+1}/${d.getDate()}`;
+    if (dayCounts[label] !== undefined) dayCounts[label]++;
+  });
+
+  if (charts['trend']) charts['trend'].destroy();
+  charts['trend'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: days,
+      datasets: [{
+        data: days.map(d => dayCounts[d]),
+        borderColor: '#4f9cf9',
+        backgroundColor: 'rgba(79,156,249,0.06)',
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: '#4f9cf9',
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#1e2535' }, ticks: { color: '#3d4558' } },
+        y: { grid: { color: '#1e2535' }, ticks: { color: '#3d4558', stepSize: 1 }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ── Pie chart ──
+function renderPieChart(counts) {
+  const ctx = document.getElementById('pie-chart').getContext('2d');
+  const labels = TYPE_ORDER.map(t => TYPE_LABELS[t]);
+  const vals = TYPE_ORDER.map(t => counts[t]||0);
+  const colors = TYPE_ORDER.map(t => TYPE_COLORS[t]);
+
+  if (charts['pie']) charts['pie'].destroy();
+  charts['pie'] = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: vals, backgroundColor: colors.map(c => c+'bb'), borderColor: colors, borderWidth: 2 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { boxWidth: 10, padding: 12, color: '#7a8499' } }
+      },
+      cutout: '60%'
+    }
+  });
+}
+
+// ── City table ──
+function renderCityTable(data, typeCounts) {
+  const el = document.getElementById('city-content');
+  const cities = {};
+  data.forEach(d => {
+    if (!d.city) return;
+    if (!cities[d.city]) cities[d.city] = { total: 0, types: {} };
+    cities[d.city].total++;
+    cities[d.city].types[d.winner] = (cities[d.city].types[d.winner]||0)+1;
+  });
+  const sorted = Object.entries(cities).sort((a,b)=>b[1].total-a[1].total).slice(0,10);
+
+  if (!sorted.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🗺️</div><div>暂无城市数据</div></div>';
+    return;
+  }
+
+  const rows = sorted.map(([city, info]) => {
+    const topType = Object.entries(info.types).sort((a,b)=>b[1]-a[1])[0];
+    const pct = Math.round(info.total / data.length * 100);
+    const chip = topType ? `<span class="type-chip" style="background:${TYPE_COLORS[topType[0]]}22;color:${TYPE_COLORS[topType[0]]}">${TYPE_LABELS[topType[0]]}</span>` : '—';
+    return `<tr>
+      <td class="city-name">${city}</td>
+      <td class="city-count">${info.total}</td>
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <div style="flex:1;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:var(--accent);border-radius:2px"></div>
+        </div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted)">${pct}%</span>
+      </div></td>
+      <td>${chip}</td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `<table class="city-table">
+    <thead><tr>
+      <th>城市</th><th>人数</th><th>占比</th><th>主流人格</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+// ── Q bars ──
+function renderQBars(qid, data, optLabels, optKeys, targetId) {
+  const el = document.getElementById(targetId);
+  const counts = {};
+  optKeys.forEach(k => counts[k] = 0);
+  let total = 0;
+  data.forEach(d => {
+    const ans = d.answers && d.answers[qid];
+    if (ans) { counts[ans] = (counts[ans]||0)+1; total++; }
+  });
+
+  if (!total) {
+    el.innerHTML = '<div class="empty-state" style="height:80px"><div>暂无数据</div></div>';
+    return;
+  }
+
+  el.innerHTML = `<div class="opt-bars">${optKeys.map((k, i) => {
+    const pct = Math.round((counts[k]||0)/total*100);
+    return `<div class="opt-bar-row">
+      <div class="opt-key-label">${k}</div>
+      <div style="display:flex;flex-direction:column;gap:2px;flex:1">
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:2px">${optLabels[i]}</div>
+        <div class="opt-bar-track"><div class="opt-bar-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="opt-bar-pct">${pct}%</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── Small bar chart ──
+function renderRadarChart(qid, data, labels, canvasId) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  const keys = labels.map((_, i) => String.fromCharCode(65+i));
+  const counts = {};
+  keys.forEach(k => counts[k] = 0);
+  let total = 0;
+  data.forEach(d => {
+    const ans = d.answers && d.answers[qid];
+    if (ans) { counts[ans] = (counts[ans]||0)+1; total++; }
+  });
+
+  if (charts[canvasId]) charts[canvasId].destroy();
+  charts[canvasId] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: keys.map(k => counts[k]||0),
+        backgroundColor: keys.map((_, i) => `hsl(${200+i*25},70%,55%)55`),
+        borderColor: keys.map((_, i) => `hsl(${200+i*25},70%,65%)`),
+        borderWidth: 1,
+        borderRadius: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#3d4558', maxRotation: 30, font: { size: 9 } } },
+        y: { grid: { color: '#1e2535' }, ticks: { color: '#3d4558', stepSize: 1 }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ── Rating chart ──
+function renderRatingChart(data) {
+  const ctx = document.getElementById('rating-chart').getContext('2d');
+  const sIds = ['s1','s2','s3','s4','s5','s6'];
+  const sLabels = ['邻里关系','常去小店','公共空间','归属感','熟悉附近','休闲交友'];
+  const avgs = sIds.map(sid => {
+    const vals = data.map(d => d.answers && parseInt(d.answers[sid])).filter(v => v > 0);
+    return vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2) : 0;
+  });
+
+  if (charts['rating']) charts['rating'].destroy();
+  charts['rating'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sLabels,
+      datasets: [{
+        data: avgs,
+        backgroundColor: '#4f9cf955',
+        borderColor: '#4f9cf9',
+        borderWidth: 1,
+        borderRadius: 2
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#1e2535' }, ticks: { color: '#3d4558' }, min: 0, max: 5 },
+        y: { grid: { display: false }, ticks: { color: '#7a8499', font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+// ── Feed ──
+function renderFeed(data) {
+  const el = document.getElementById('feed-list');
+  const withOpen = data.filter(d => d.answers && d.answers.q26 && d.answers.q26.length > 5)
+    .sort((a,b) => b.ts-a.ts).slice(0,20);
+
+  if (!withOpen.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><div>暂无开放题回答</div></div>';
+    return;
+  }
+
+  el.innerHTML = withOpen.map(d => {
+    const t = new Date(d.ts);
+    const timeStr = `${t.getMonth()+1}/${t.getDate()} ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+    const typeLabel = TYPE_LABELS[d.winner] || '未知';
+    const typeColor = TYPE_COLORS[d.winner] || '#888';
+    const city = d.city || '未知城市';
+    return `<div class="feed-item" style="border-left-color:${typeColor}44">
+      <div class="feed-meta">
+        <span style="color:${typeColor}">${typeLabel}</span>
+        <span>${city}</span>
+        <span>${timeStr}</span>
+      </div>
+      <div class="feed-text">${d.answers.q26.substring(0,120)}${d.answers.q26.length>120?'…':''}</div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+// CLOCK - 修复时钟显示问题
+// ══════════════════════════════════════════════
+function updateClock() {
+  try {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const timeString = `${hours}:${minutes}:${seconds}`;
+    
+    // 确保元素存在再更新
+    const clockElement = document.getElementById('clock');
+    if (clockElement) {
+      clockElement.textContent = timeString;
+    }
+  } catch (e) {
+    console.error('时钟更新失败:', e);
+  }
+}
+
+// ══════════════════════════════════════════════
+// INIT - 优化初始化逻辑
+// ══════════════════════════════════════════════
+// 立即执行一次时钟更新
+updateClock();
+// 每秒更新时钟
+setInterval(updateClock, 1000);
+// 初始加载数据
+refreshData();
+// 每30秒自动刷新数据
+setInterval(refreshData, 30000);
+</script>
+</body>
+</html>
