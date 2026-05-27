@@ -1199,15 +1199,6 @@ function getGlobalQuestionNumber(pageIdx, qi) {
   return count;
 }
 
-// For rating, count differently
-function getGlobalRatingNum(pageIdx) {
-  let count = 0;
-  for (let i = 0; i < pageIdx; i++) {
-    pages[i].questions.forEach(q => { if (!q.isCheck) count++; });
-  }
-  return count + 1;
-}
-
 // ═══════════════════════════════════════
 // RENDER
 // ═══════════════════════════════════════
@@ -1244,8 +1235,7 @@ function renderPage(pageIdx) {
 
     let inner = '';
     if (q.type === 'rating') {
-      const rNum = getGlobalRatingNum(pageIdx);
-      inner = `<div class="question-num">Q${rNum}</div><div class="question-text">${q.text}</div>`;
+      inner = `<div class="question-num">Q${qNumGlobal}</div><div class="question-text">${q.text}</div>`;
       if (q.hint) inner += `<div class="question-hint">${q.hint}</div>`;
     } else {
       inner = `<div class="question-num">Q${qNumGlobal}</div><div class="question-text">${q.text}</div>`;
