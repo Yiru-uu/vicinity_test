@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>附近生物图鉴 · 数据看板</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #060810;
+    --surface: #0d1117;
+    --surface2: #141820;
+    --surface3: #1c2130;
+    --border: #1e2535;
+    --border2: #2a3348;
+    --accent: #4f9cf9;
+    --accent2: #63e8b0;
+    --accent3: #f7b731;
+    --text: #d8dde8;
+    --text-dim: #7a8499;
+    --text-muted: #3d4558;
+    --looker: #63e8b0;
+    --laoma: #f0a050;
+    --hughost: #a78bfa;
+    --oenbye: #8899aa;
+    --wifier: #4f9cf9;
+    --bystander: #c0b060;
+    --apiao: #b0b8c0;
+    --red: #f25c5c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(79,156,249,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,156,249,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(6,8,16,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-brand { display: flex; align-items: center; gap: 12px; }
+  .header-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent2); box-shadow: 0 0 8px var(--accent2);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
+  .header-title { font-size: 13px; font-weight: 500; letter-spacing: 0.05em; color: var(--text); }
+  .header-right { display: flex; align-items: center; gap: 20px; }
+  .header-time { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-dim); }
+  .btn-refresh {
+    display: flex; align-items: center; gap: 6px; padding: 6px 14px;
+    background: transparent; border: 1px solid var(--border2); color: var(--text-dim);
+    font-size: 12px; cursor: pointer; transition: all 0.2s;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+  .btn-refresh:hover { border-color: var(--accent); color: var(--accent); }
+
+  .main { position: relative; z-index: 1; padding: 24px; max-width: 1440px; margin: 0 auto; }
+
+  /* KPI */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px; margin-bottom: 20px;
+  }
+  .kpi-card {
+    background: var(--surface); border: 1px solid var(--border); padding: 20px;
+    position: relative; overflow: hidden; transition: border-color 0.2s;
+  }
+  .kpi-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--card-color, var(--accent));
+  }
+  .kpi-card:hover { border-color: var(--border2); }
+  .kpi-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+  .kpi-value { font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 500; color: var(--text); margin-bottom: 4px; line-height: 1; }
+  .kpi-sub { font-size: 11px; color: var(--text-muted); }
+  .kpi-trend { font-size: 11px; color: var(--accent2); }
+
+  /* Grids */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .grid-main { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 900px) { .grid-2,.grid-3,.grid-4,.grid-main { grid-template-columns: 1fr; } }
+
+  /* Panels */
+  .panel {
+    background: var(--surface); border: 1px solid var(--border); padding: 20px; position: relative;
+  }
+  .panel-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .panel-title { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); font-weight: 500; }
+  .panel-badge { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 3px 8px; background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted); }
+
+  /* Personality bars */
+  .personality-bars { display: flex; flex-direction: column; gap: 10px; }
+  .pbar-row { display: grid; grid-template-columns: 80px 1fr 44px 36px; gap: 10px; align-items: center; }
+  .pbar-name { font-size: 12px; color: var(--text-dim); white-space: nowrap; }
+  .pbar-track { height: 8px; background: var(--surface2); border-radius: 1px; overflow: hidden; }
+  .pbar-fill { height: 100%; border-radius: 1px; transition: width 0.8s cubic-bezier(0.16,1,0.3,1); width: 0%; position: relative; }
+  .pbar-fill::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background: inherit; filter: brightness(1.5); box-shadow: 0 0 8px currentColor; }
+  .pbar-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); text-align: right; }
+  .pbar-pct { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); text-align: right; }
+
+  .chart-wrap { position: relative; height: 200px; }
+  .chart-wrap-sm { position: relative; height: 160px; }
+  .chart-wrap-lg { position: relative; height: 240px; }
+
+  /* City table */
+  .city-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .city-table th { padding: 8px 10px; text-align: left; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .city-table td { padding: 10px; border-bottom: 1px solid rgba(30,37,53,0.5); vertical-align: middle; }
+  .city-table tr:last-child td { border-bottom: none; }
+  .city-table tr:hover td { background: var(--surface2); }
+  .city-name { color: var(--text); font-weight: 500; }
+  .city-count { font-family: 'JetBrains Mono', monospace; color: var(--text-dim); }
+  .type-chip { display: inline-block; padding: 2px 8px; font-size: 10px; border-radius: 0; font-weight: 500; }
+
+  /* Q bars */
+  .q-breakdown { display: flex; flex-direction: column; gap: 8px; }
+  .q-item-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
+  .q-item-label { font-size: 11px; color: var(--text-dim); line-height: 1.3; }
+  .q-item-n { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); }
+  .opt-bars { display: flex; flex-direction: column; gap: 3px; }
+  .opt-bar-row { display: grid; grid-template-columns: 18px 1fr 36px; gap: 6px; align-items: center; }
+  .opt-key-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); }
+  .opt-bar-track { height: 5px; background: var(--surface2); border-radius: 1px; overflow: hidden; }
+  .opt-bar-fill { height: 100%; border-radius: 1px; transition: width 0.6s; }
+  .opt-bar-pct { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); text-align: right; }
+
+  /* Section */
+  .section-label {
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 12px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border); grid-column: 1 / -1;
+  }
+
+  /* Feed */
+  .feed-list { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; }
+  .feed-item { padding: 12px 14px; background: var(--surface2); border-left: 2px solid var(--border2); font-size: 12px; color: var(--text-dim); animation: slideIn 0.4s ease; transition: border-color 0.2s; }
+  .feed-item:hover { border-color: var(--accent); }
+  @keyframes slideIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
+  .feed-meta { display: flex; gap: 10px; margin-bottom: 4px; font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+  .feed-text { color: var(--text-dim); line-height: 1.5; }
+
+  /* Empty */
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 120px; color: var(--text-muted); font-size: 12px; gap: 8px; text-align: center; }
+  .empty-icon { font-size: 28px; opacity: 0.4; }
+
+  /* Color classes */
+  .c-looker { color: var(--looker); } .bg-looker { background: var(--looker); }
+  .c-laoma { color: var(--laoma); } .bg-laoma { background: var(--laoma); }
+  .c-hughost { color: var(--hughost); } .bg-hughost { background: var(--hughost); }
+  .c-oenbye { color: var(--oenbye); } .bg-oenbye { background: var(--oenbye); }
+  .c-wifier { color: var(--wifier); } .bg-wifier { background: var(--wifier); }
+  .c-bystander { color: var(--bystander); } .bg-bystander { background: var(--bystander); }
+  .c-apiao { color: var(--apiao); } .bg-apiao { background: var(--apiao); }
+
+  ::-webkit-scrollbar { width: 3px; height: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-brand">
+    <div class="header-dot"></div>
+    <span class="header-title">附近生物图鉴 · 实时数据看板</span>
+  </div>
+  <div class="header-right">
+    <span class="header-time" id="clock">00:00:00</span>
+    <button class="btn-refresh" onclick="refreshData()">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+        <path d="M14 8A6 6 0 112 8M14 8V4M14 8H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      刷新
+    </button>
+  </div>
+</header>
+
+<div class="main">
+  <!-- ══ KPI ROW ══ -->
+  <div class="kpi-row" id="kpi-row">
+    <div class="kpi-card" style="--card-color:var(--accent2)">
+      <div class="kpi-label">总答题人数</div>
+      <div class="kpi-value" id="kpi-total">0</div>
+      <div class="kpi-trend" id="kpi-trend">今日新增 0</div>
+    </div>
+    <div class="kpi-card" style="--card-color:var(--accent)">
+      <div class="kpi-label">完整完成率</div>
+      <div class="kpi-value" id="kpi-completion">0%</div>
+      <div class="kpi-sub">完整作答 / 总答题</div>
+    </div>
+    <div class="kpi-card" style="--card-color:var(--accent3)">
+      <div class="kpi-label">最热人格</div>
+      <div class="kpi-value" id="kpi-top-type" style="font-size:16px;margin-top:4px">—</div>
+      <div class="kpi-sub" id="kpi-top-pct">占比 —</div>
+    </div>
+    <div class="kpi-card" style="--card-color:var(--oenbye)">
+      <div class="kpi-label">最冷人格</div>
+      <div class="kpi-value" id="kpi-bot-type" style="font-size:16px;margin-top:4px">—</div>
+      <div class="kpi-sub" id="kpi-bot-pct">占比 —</div>
+    </div>
+    <div class="kpi-card" style="--card-color:var(--hughost)">
+      <div class="kpi-label">开放题回答率</div>
+      <div class="kpi-value" id="kpi-open">0%</div>
+      <div class="kpi-sub">填写了 Q26 的比例</div>
+    </div>
+  </div>
+
+  <!-- ══ PERSONALITY + TREND ══ -->
+  <div class="grid-main">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">人格分布（7种）</div>
+        <div class="panel-badge" id="badge-total">N=0</div>
+      </div>
+      <div class="personality-bars" id="personality-bars">
+        <div class="empty-state"><div class="empty-icon">📊</div><div>暂无数据</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><div class="panel-title">答题趋势（近7天）</div></div>
+      <div class="chart-wrap-lg"><canvas id="trend-chart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ══ CITY + PIE ══ -->
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">城市分布 TOP10</div>
+        <div class="panel-badge">基于 IP</div>
+      </div>
+      <div id="city-content"><div class="empty-state"><div class="empty-icon">🗺️</div><div>暂无城市数据</div></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><div class="panel-title">人格占比饼图</div></div>
+      <div class="chart-wrap"><canvas id="pie-chart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ══ PHASE 2: Q3-Q10 ══ -->
+  <div class="section-label">第二阶段 · 你的「附近」成分有多高？</div>
+  <div class="grid-4" id="phase2-grid">
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q3 生活状态</div></div><div id="q3-bars"></div></div>
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q4 住所类型</div></div><div id="q4-bars"></div></div>
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q5 居住时长</div></div><div id="q5-bars"></div></div>
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q6 解锁成就（多选）</div></div><div id="q6-bars"></div></div>
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q7 购物方式</div></div><div id="q7-bars"></div></div>
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q8 摇人求助（多选）</div></div><div id="q8-bars"></div></div>
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q9 公共设施探索</div></div><div id="q9-bars"></div></div>
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q10 老店关门</div></div><div id="q10-bars"></div></div>
+  </div>
+
+  <!-- ══ PHASE 3: Q11-Q18 ══ -->
+  <div class="section-label">第三阶段 · 公共空间里的你是哪种生物？</div>
+  <div class="grid-4" id="phase3-grid">
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q11 公共空间频率</div></div><div id="q11-bars"></div></div>
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q12 光顾功能（多选）</div></div><div id="q12-bars"></div></div>
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q14 去场所动机（多选）</div></div><div id="q14-bars"></div></div>
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q15 选择因素（多选）</div></div><div id="q15-bars"></div></div>
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q16 公共空间模式</div></div><div id="q16-bars"></div></div>
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q17 陌生人互动难度</div></div><div id="q17-bars"></div></div>
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q18 熟人深入交谈难度</div></div><div id="q18-bars"></div></div>
+  </div>
+
+  <!-- ══ PHASE 4: Q19-Q24 ══ -->
+  <div class="section-label">第四阶段 · 你对「附近的消失」怎么看？</div>
+  <div class="grid-4" id="phase4-grid">
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q19 听过「附近的消失」吗</div></div><div id="q19-bars"></div></div>
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q20 附近正在消失吗</div></div><div id="q20-bars"></div></div>
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q21 对消失的态度</div></div><div id="q21-bars"></div></div>
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q22 罪魁祸首（多选）</div></div><div id="q22-bars"></div></div>
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q23 观点认同</div></div><div id="q23-bars"></div></div>
+    <div class="panel"><div class="panel-header"><div class="panel-title">Q25 未来意愿</div></div><div id="q25-bars"></div></div>
+  </div>
+
+  <!-- ══ Q24 RATING + Q26 FEED ══ -->
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Q24 态度量表平均分</div>
+        <div class="panel-badge">1-5分</div>
+      </div>
+      <div class="chart-wrap"><canvas id="rating-chart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Q26 最新开放题回答</div>
+        <div class="panel-badge" id="open-count">0条</div>
+      </div>
+      <div class="feed-list" id="feed-list">
+        <div class="empty-state"><div class="empty-icon">💬</div><div>暂无开放题回答</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════ CONFIG ═══════════════════
+const TYPE_LABELS = {
+  looker:'在地守望者', laoma:'社区营造者', hughost:'氛围栖居者',
+  oenbye:'主动隔绝者', wifier:'赛博游牧者', bystander:'清醒隔绝者', apiao:'无感漂流者'
+};
+const TYPE_COLORS = {
+  looker:'#63e8b0', laoma:'#f0a050', hughost:'#a78bfa',
+  oenbye:'#8899aa', wifier:'#4f9cf9', bystander:'#c0b060', apiao:'#b0b8c0'
+};
+const TYPE_ORDER = ['looker','laoma','hughost','oenbye','wifier','bystander','apiao'];
+
+Chart.defaults.color = '#7a8499';
+Chart.defaults.borderColor = '#1e2535';
+Chart.defaults.font.family = "'JetBrains Mono', monospace";
+Chart.defaults.font.size = 11;
+
+let charts = {};
+
+// ═══════════════════ SUPABASE ═══════════════════
+const supabaseUrl = "https://fpacloguwmxnympiurlr.supabase.co";
+const supabaseKey = "sb_publishable_8eBpItKcvs9BiZPLtZnTlw_G-NGQNIP";
+const sb = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+async function loadData() {
+  try {
+    const { data, error } = await sb.from('survey_results').select('*').order('ts',{ascending:false});
+    if (error) { console.error('获取失败:', error); return []; }
+    return data || [];
+  } catch(e) { console.error('异常:', e); return []; }
+}
+
+async function refreshData() { const data = await loadData(); render(data); updateClock(); }
+
+// ═══════════════════ RENDER ═══════════════════
+function render(data) {
+  const total = data.length;
+
+  // KPIs
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('badge-total').textContent = `N=${total}`;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayCount = data.filter(d => d.ts >= today.getTime()).length;
+  document.getElementById('kpi-trend').textContent = `今日新增 ${todayCount}`;
+
+  const complete = data.filter(d => d.answers && (d.answers.q25 || d.answers.q26)).length;
+  document.getElementById('kpi-completion').textContent = total ? Math.round(complete/total*100)+'%' : '0%';
+
+  const openA = data.filter(d => d.answers && d.answers.q26 && d.answers.q26.length>5).length;
+  document.getElementById('kpi-open').textContent = total ? Math.round(openA/total*100)+'%' : '0%';
+  document.getElementById('open-count').textContent = `${openA}条`;
+
+  // Type counts
+  const typeCounts = {};
+  TYPE_ORDER.forEach(t => typeCounts[t]=0);
+  data.forEach(d => { if(d.winner) typeCounts[d.winner]=(typeCounts[d.winner]||0)+1; });
+  const sortedT = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1]);
+
+  if(sortedT.length && total>0){
+    const [topT,topN]=sortedT[0]; const [botT,botN]=sortedT[sortedT.length-1];
+    document.getElementById('kpi-top-type').textContent = TYPE_LABELS[topT]||topT;
+    document.getElementById('kpi-top-pct').textContent = `占比 ${Math.round(topN/total*100)}%`;
+    document.getElementById('kpi-top-type').className = `kpi-value c-${topT}`;
+    document.getElementById('kpi-bot-type').textContent = TYPE_LABELS[botT]||botT;
+    document.getElementById('kpi-bot-pct').textContent = `占比 ${Math.round(botN/total*100)}%`;
+    document.getElementById('kpi-bot-type').className = `kpi-value c-${botT}`;
+  }
+
+  renderPersonalityBars(typeCounts, total);
+  renderTrendChart(data);
+  renderPieChart(typeCounts);
+  renderCityTable(data);
+
+  // Single choice questions: Q3-Q5, Q7, Q9-Q11, Q13, Q16-Q21, Q23, Q25
+  renderSingleQ('q3', data, ['在校学生','全职/兼职','自由职业','在职进修','暂未就业','其他'], ['A','B','C','D','E','F']);
+  renderSingleQ('q4', data, ['商品住宅','老旧小区','公寓','城中村','宿舍'], ['A','B','C','D','E']);
+  renderSingleQ('q5', data, ['3-6个月','6月-1年','1年-3年','3年以上'], ['A','B','C','D']);
+  renderSingleQ('q7', data, ['外卖/网购之神','应急出门','随缘佛系','附近拥护者'], ['A','B','C','D']);
+  renderSingleQ('q9', data, ['大门不出','略有耳闻','偶尔打卡','轻车熟路','活地图'], ['A','B','C','D','E']);
+  renderSingleQ('q10', data, ['经常','偶尔','从未','没注意'], ['A','B','C','D']);
+  renderSingleQ('q11', data, ['几乎每天','每周3-5次','每周1-2次','每月1次','几乎不去'], ['A','B','C','D','E']);
+  renderSingleQ('q16', data, ['结界模式','待机模式','开放模式','连体婴模式'], ['A','B','C','D']);
+  renderSingleQ('q17', data, ['非常困难','比较困难','一般','比较容易','非常容易'], ['A','B','C','D','E']);
+  renderSingleQ('q18', data, ['非常困难','比较困难','一般','比较容易','非常容易'], ['A','B','C','D','E']);
+  renderSingleQ('q19', data, ['非常了解','听说过','没听过但理解','完全没听过'], ['A','B','C','D']);
+  renderSingleQ('q20', data, ['加速消失','缓慢消失','没变化','附近活跃'], ['A','B','C','D']);
+  renderSingleQ('q21', data, ['有点难过','有点慌','理解但无奈','基本接受','不以为意'], ['A','B','C','D','E']);
+  renderSingleQ('q23', data, ['远亲不如近邻','灵魂共振之上','心有余力不足','实用主义'], ['A','B','C','D']);
+  renderSingleQ('q25', data, ['非常想','比较想','不确定','不太想','完全不想'], ['A','B','C','D','E']);
+
+  // Multi choice questions
+  renderMultiQ('q6', data, ['城市漫步','社交牛杂症','实体店守护者','闲聊达人','社区活跃','天使投资人','隐形人'], ['A','B','C','D','E','F','G']);
+  renderMultiQ('q8', data, ['漏水断电','帮忙收快递','人身安全','生病送医','绝不摇人'], ['A','B','C','D','E']);
+  renderMultiQ('q12', data, ['文化熏陶','餐厅食堂','健身房','公园发呆','找乐子','压马路','其他'], ['A','B','C','D','E','F','G']);
+  renderMultiQ('q14', data, ['自闭躲清静','聚会陪伴','认识新朋友','办事运动','寻找氛围','摸鱼出逃'], ['A','B','C','D','E','F']);
+  renderMultiQ('q15', data, ['距离近','价格低','私密性','颜值','社交属性','安全感','舒适度','其他'], ['A','B','C','D','E','F','G','H']);
+  renderMultiQ('q22', data, ['门禁化','压力大躺平','数字生活','流动性高','个体意识','连锁店标准化','其他'], ['A','B','C','D','E','F','G']);
+
+  renderRatingChart(data);
+  renderFeed(data);
+}
+
+// ── Personality bars ──
+function renderPersonalityBars(counts, total) {
+  const el = document.getElementById('personality-bars');
+  if(!total){el.innerHTML='<div class="empty-state"><div class="empty-icon">📊</div><div>暂无数据</div></div>';return;}
+  const sorted=TYPE_ORDER.map(t=>[t,counts[t]||0]).sort((a,b)=>b[1]-a[1]);
+  el.innerHTML=sorted.map(([t,n])=>{
+    const pct=Math.round(n/total*100);
+    return `<div class="pbar-row">
+      <div class="pbar-name c-${t}">${TYPE_LABELS[t]}</div>
+      <div class="pbar-track"><div class="pbar-fill bg-${t}" style="width:0%" data-pct="${pct}"></div></div>
+      <div class="pbar-count">${n}</div>
+      <div class="pbar-pct">${pct}%</div>
+    </div>`;
+  }).join('');
+  setTimeout(()=>{el.querySelectorAll('.pbar-fill').forEach(b=>b.style.width=b.dataset.pct+'%');},100);
+}
+
+// ── Trend ──
+function renderTrendChart(data) {
+  const ctx=document.getElementById('trend-chart').getContext('2d');
+  const days=[], dayCounts={};
+  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);d.setHours(0,0,0,0);const l=`${d.getMonth()+1}/${d.getDate()}`;days.push(l);dayCounts[l]=0;}
+  data.forEach(rec=>{const d=new Date(rec.ts);d.setHours(0,0,0,0);const l=`${d.getMonth()+1}/${d.getDate()}`;if(dayCounts[l]!==undefined)dayCounts[l]++;});
+  if(charts['trend'])charts['trend'].destroy();
+  charts['trend']=new Chart(ctx,{type:'line',data:{labels:days,datasets:[{data:days.map(d=>dayCounts[d]),borderColor:'#4f9cf9',backgroundColor:'rgba(79,156,249,0.06)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#4f9cf9',fill:true,tension:0.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#1e2535'},ticks:{color:'#3d4558'}},y:{grid:{color:'#1e2535'},ticks:{color:'#3d4558',stepSize:1},beginAtZero:true}}}});
+}
+
+// ── Pie ──
+function renderPieChart(counts) {
+  const ctx=document.getElementById('pie-chart').getContext('2d');
+  const labels=TYPE_ORDER.map(t=>TYPE_LABELS[t]), vals=TYPE_ORDER.map(t=>counts[t]||0), colors=TYPE_ORDER.map(t=>TYPE_COLORS[t]);
+  if(charts['pie'])charts['pie'].destroy();
+  charts['pie']=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data:vals,backgroundColor:colors.map(c=>c+'bb'),borderColor:colors,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{boxWidth:10,padding:12,color:'#7a8499'}}},cutout:'60%'}});
+}
+
+// ── City table ──
+function renderCityTable(data) {
+  const el=document.getElementById('city-content');
+  const cities={};
+  data.forEach(d=>{if(!d.city)return;if(!cities[d.city])cities[d.city]={total:0,types:{}};cities[d.city].total++;cities[d.city].types[d.winner]=(cities[d.city].types[d.winner]||0)+1;});
+  const sorted=Object.entries(cities).sort((a,b)=>b[1].total-a[1].total).slice(0,10);
+  if(!sorted.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">🗺️</div><div>暂无城市数据</div></div>';return;}
+  el.innerHTML=`<table class="city-table"><thead><tr><th>城市</th><th>人数</th><th>占比</th><th>主流人格</th></tr></thead><tbody>${sorted.map(([city,info])=>{
+    const topType=Object.entries(info.types).sort((a,b)=>b[1]-a[1])[0];
+    const pct=Math.round(info.total/data.length*100);
+    const chip=topType?`<span class="type-chip" style="background:${TYPE_COLORS[topType[0]]}22;color:${TYPE_COLORS[topType[0]]}">${TYPE_LABELS[topType[0]]}</span>`:'—';
+    return `<tr><td class="city-name">${city}</td><td class="city-count">${info.total}</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden"><div style="width:${pct}%;height:100%;background:var(--accent);border-radius:2px"></div></div><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted)">${pct}%</span></div></td><td>${chip}</td></tr>`;
+  }).join('')}</tbody></table>`;
+}
+
+// ── Single choice Q bars ──
+function renderSingleQ(qid, data, optLabels, optKeys) {
+  const el=document.getElementById(qid+'-bars');
+  const counts={}; optKeys.forEach(k=>counts[k]=0); let total=0;
+  data.forEach(d=>{const ans=d.answers&&d.answers[qid];if(ans){counts[ans]=(counts[ans]||0)+1;total++;}});
+  if(!total){el.innerHTML='<div class="empty-state" style="height:60px"><div>暂无数据</div></div>';return;}
+  const barColors=['#63e8b0','#f0a050','#a78bfa','#8899aa','#4f9cf9','#c0b060','#b0b8c0','#f25c5c'];
+  el.innerHTML=`<div class="opt-bars">${optKeys.map((k,i)=>{
+    const pct=Math.round((counts[k]||0)/total*100);
+    return `<div class="opt-bar-row">
+      <div class="opt-key-label">${k}</div>
+      <div style="display:flex;flex-direction:column;gap:1px;flex:1">
+        <div style="font-size:10px;color:var(--text-dim);margin-bottom:1px;line-height:1.3">${optLabels[i]}</div>
+        <div class="opt-bar-track"><div class="opt-bar-fill" style="width:${pct}%;background:${barColors[i%barColors.length]}"></div></div>
+      </div>
+      <div class="opt-bar-pct">${pct}%</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── Multi choice Q bars ──
+function renderMultiQ(qid, data, optLabels, optKeys) {
+  const el=document.getElementById(qid+'-bars');
+  const counts={}; optKeys.forEach(k=>counts[k]=0);
+  let totalRespondents=0;
+  data.forEach(d=>{const ans=d.answers&&d.answers[qid];if(ans&&Array.isArray(ans)&&ans.length>0){totalRespondents++;ans.forEach(k=>{counts[k]=(counts[k]||0)+1;});}});
+  if(!totalRespondents){el.innerHTML='<div class="empty-state" style="height:60px"><div>暂无数据</div></div>';return;}
+  const barColors=['#63e8b0','#f0a050','#a78bfa','#8899aa','#4f9cf9','#c0b060','#b0b8c0','#f25c5c'];
+  el.innerHTML=`<div class="q-item-header"><div class="q-item-n">N=${totalRespondents}</div></div><div class="opt-bars">${optKeys.map((k,i)=>{
+    const pct=Math.round((counts[k]||0)/totalRespondents*100);
+    return `<div class="opt-bar-row">
+      <div class="opt-key-label">${k}</div>
+      <div style="display:flex;flex-direction:column;gap:1px;flex:1">
+        <div style="font-size:10px;color:var(--text-dim);margin-bottom:1px;line-height:1.3">${optLabels[i]}</div>
+        <div class="opt-bar-track"><div class="opt-bar-fill" style="width:${pct}%;background:${barColors[i%barColors.length]}"></div></div>
+      </div>
+      <div class="opt-bar-pct">${pct}%</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── Rating chart ──
+function renderRatingChart(data) {
+  const ctx=document.getElementById('rating-chart').getContext('2d');
+  const sIds=['s1','s2','s3','s4','s5','s6'];
+  const sLabels=['邻里关系','常去小店','公共空间','归属感','熟悉附近','休闲交友'];
+  const avgs=sIds.map(sid=>{const vals=data.map(d=>d.answers&&parseInt(d.answers[sid])).filter(v=>v>0);return vals.length?(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2):0;});
+  if(charts['rating'])charts['rating'].destroy();
+  charts['rating']=new Chart(ctx,{type:'bar',data:{labels:sLabels,datasets:[{data:avgs,backgroundColor:'#a78bfa55',borderColor:'#a78bfa',borderWidth:1,borderRadius:2}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#1e2535'},ticks:{color:'#3d4558'},min:0,max:5},y:{grid:{display:false},ticks:{color:'#7a8499',font:{size:10}}}}}});
+}
+
+// ── Feed ──
+function renderFeed(data) {
+  const el=document.getElementById('feed-list');
+  const withOpen=data.filter(d=>d.answers&&d.answers.q26&&d.answers.q26.length>5).sort((a,b)=>b.ts-a.ts).slice(0,20);
+  if(!withOpen.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">💬</div><div>暂无开放题回答</div></div>';return;}
+  el.innerHTML=withOpen.map(d=>{
+    const t=new Date(d.ts);
+    const ts=`${t.getMonth()+1}/${t.getDate()} ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+    const tl=TYPE_LABELS[d.winner]||'未知', tc=TYPE_COLORS[d.winner]||'#888', city=d.city||'未知城市';
+    return `<div class="feed-item" style="border-left-color:${tc}44">
+      <div class="feed-meta"><span style="color:${tc}">${tl}</span><span>${city}</span><span>${ts}</span></div>
+      <div class="feed-text">${d.answers.q26.substring(0,120)}${d.answers.q26.length>120?'…':''}</div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════ CLOCK ═══════════════════
+function updateClock() {
+  const now=new Date();
+  const clock=document.getElementById('clock');
+  if(clock)clock.textContent=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+}
+
+updateClock();
+setInterval(updateClock,1000);
+refreshData();
+setInterval(refreshData,30000);
+</script>
+</body>
+</html>
