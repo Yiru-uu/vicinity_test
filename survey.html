@@ -1427,6 +1427,21 @@ let isTerminated = false;
 let currentQIdx = 0;
 let allFlat = [];
 
+// Behavior tracking
+let behaviorEvents = [];
+let questionChangeCount = {};
+let questionFirstSeen = {};
+let backtracks = 0;
+let surveyStartTime = 0;
+
+function trackEvent(qid, eventType) {
+  behaviorEvents.push({ qid, event: eventType, ts: Date.now() });
+}
+function trackChange(qid) {
+  questionChangeCount[qid] = (questionChangeCount[qid] || 0) + 1;
+  trackEvent(qid, 'change');
+}
+
 function buildFlatList() {
   allFlat = [];
   pages.forEach((page, pi) => {
@@ -1461,6 +1476,11 @@ function getGlobalQuestionNumber(pageIdx, qi) {
 function startSurvey() {
   buildFlatList();
   currentQIdx = 0;
+  behaviorEvents = [];
+  questionChangeCount = {};
+  questionFirstSeen = {};
+  backtracks = 0;
+  surveyStartTime = Date.now();
   document.getElementById('cover').style.display = 'none';
   document.getElementById('survey').style.display = 'block';
   renderCurrentQuestion();
@@ -1471,6 +1491,14 @@ function renderCurrentQuestion() {
   if (!entry) { computeAndShowResult(); return; }
 
   const { pageIdx, qi, q } = entry;
+  
+  // Track first view
+  if (!questionFirstSeen[q.id]) {
+    questionFirstSeen[q.id] = Date.now();
+    trackEvent(q.id, 'view');
+  }
+  trackEvent(q.id, 'visit');
+
   const page = pages[pageIdx];
   const container = document.getElementById('questions-container');
   container.innerHTML = '';
@@ -1557,8 +1585,10 @@ function renderCurrentQuestion() {
 // SELECTION HANDLERS
 // ═══════════════════════════════════════
 function selectSingle(qid, key, el, isCheck, isTerminal) {
+  const hadAnswer = !!answers[qid];
   answers[qid] = key;
   updateSelection(el);
+  if (hadAnswer) trackChange(qid);
 
   if (isTerminal) {
     isTerminated = true;
@@ -1570,19 +1600,26 @@ function selectSingle(qid, key, el, isCheck, isTerminal) {
 }
 
 function selectMulti(qid, key, el) {
+  const hadAnswer = !!(answers[qid] && answers[qid].length);
   let arr = answers[qid] || [];
   if (arr.includes(key)) arr = arr.filter(k => k !== key);
   else arr.push(key);
   answers[qid] = arr;
   el.classList.toggle('selected');
+  trackChange(qid);
 }
 
 function selectRating(sid, val) {
+  const hadAnswer = !!answers[sid];
   answers[sid] = val;
+  if (hadAnswer && answers[sid] !== val) trackChange(sid);
+  else if (!hadAnswer) trackEvent(sid, 'change');
 }
 
 function selectOpen(qid, val) {
+  const hadAnswer = !!answers[qid];
   answers[qid] = val;
+  if (!hadAnswer && val) trackChange(qid);
 }
 
 function updateSelection(el) {
@@ -1609,6 +1646,8 @@ function nextQuestion() {
 
 function prevQuestion() {
   if (currentQIdx > 0) {
+    backtracks++;
+    trackEvent(allFlat[currentQIdx].q.id, 'back');
     currentQIdx--;
     renderCurrentQuestion();
   }
@@ -1747,6 +1786,10 @@ function restart() {
   answers = {};
   currentQIdx = 0;
   isTerminated = false;
+  behaviorEvents = [];
+  questionChangeCount = {};
+  questionFirstSeen = {};
+  backtracks = 0;
   document.getElementById('result').style.display = 'none';
   document.getElementById('cover').style.display = 'flex';
   window.scrollTo(0, 0);
@@ -1772,7 +1815,14 @@ async function submitToBackend(ans, winner, scores) {
       scores,
       answers: ans,
       city,
-      ua: navigator.userAgent
+      ua: navigator.userAgent,
+      behavior: {
+        events: behaviorEvents,
+        changeCounts: questionChangeCount,
+        firstSeen: questionFirstSeen,
+        backtracks,
+        totalDuration: Date.now() - surveyStartTime
+      }
     };
     await sb.from('survey_results').insert(record);
     console.log('saved');
