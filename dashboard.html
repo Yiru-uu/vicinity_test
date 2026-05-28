@@ -192,6 +192,70 @@
   ::-webkit-scrollbar { width: 3px; height: 3px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* Region comparison */
+  .region-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  @media (max-width: 900px) { .region-grid { grid-template-columns: 1fr; } }
+  .region-card {
+    background: var(--surface); border: 1px solid var(--border); padding: 16px; position: relative;
+    transition: border-color 0.2s;
+  }
+  .region-card:hover { border-color: var(--border2); }
+  .region-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .region-card.north::before { background: var(--accent); }
+  .region-card.coastal::before { background: var(--accent2); }
+  .region-card.inland::before { background: var(--accent3); }
+  .region-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .region-card-title { font-size: 13px; font-weight: 500; }
+  .region-card-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); }
+  .region-type-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 11px; }
+  .region-type-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .region-type-name { color: var(--text-dim); width: 70px; }
+  .region-type-bar { flex: 1; height: 4px; background: var(--surface2); border-radius: 1px; overflow: hidden; }
+  .region-type-fill { height: 100%; border-radius: 1px; transition: width 0.6s; }
+  .region-type-pct { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); width: 32px; text-align: right; }
+  .region-top-type { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-dim); }
+  .region-top-type strong { font-weight: 500; }
+
+  /* Behavior panel */
+  .behavior-rank { display: flex; flex-direction: column; gap: 6px; }
+  .behavior-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--surface2); border-left: 2px solid var(--border2); }
+  .behavior-item:hover { border-color: var(--accent); }
+  .behavior-rank-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; color: var(--accent3); width: 20px; }
+  .behavior-qid { font-size: 10px; color: var(--text-muted); width: 28px; font-family: 'JetBrains Mono', monospace; }
+  .behavior-label { font-size: 11px; color: var(--text-dim); flex: 1; line-height: 1.3; }
+  .behavior-change-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--red); }
+  .behavior-change-bar { height: 3px; background: var(--surface3); border-radius: 1px; overflow: hidden; flex: 1; max-width: 60px; }
+  .behavior-change-fill { height: 100%; background: var(--red); border-radius: 1px; }
+
+  /* Consensus score */
+  .consensus-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .consensus-icon { font-size: 12px; width: 16px; text-align: center; }
+  .consensus-track { flex: 1; height: 4px; background: var(--surface2); border-radius: 1px; overflow: hidden; }
+  .consensus-fill { height: 100%; border-radius: 1px; transition: width 0.6s; }
+
+  /* Heatmap */
+  .heatmap-wrap { overflow-x: auto; }
+  .heatmap-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+  .heatmap-table th { padding: 6px 8px; text-align: center; color: var(--text-muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .heatmap-table th:first-child { text-align: left; padding-left: 0; }
+  .heatmap-table td { padding: 4px 6px; text-align: center; border-bottom: 1px solid rgba(30,37,53,0.3); }
+  .heatmap-table td:first-child { text-align: left; padding-left: 0; color: var(--text-dim); font-size: 11px; }
+  .heatmap-cell { display: inline-block; padding: 4px 8px; min-width: 32px; font-family: 'JetBrains Mono', monospace; }
+
+  /* Speed reading */
+  .speed-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .speed-label { font-size: 11px; color: var(--text-dim); width: 70px; }
+  .speed-bar { flex: 1; height: 6px; background: var(--surface2); border-radius: 1px; overflow: hidden; }
+  .speed-fill { height: 100%; border-radius: 1px; transition: width 0.6s; }
+  .speed-val { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); width: 60px; text-align: right; }
+
+  /* Drop-off */
+  .dropoff-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+  .dropoff-q { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); width: 28px; }
+  .dropoff-track { flex: 1; height: 5px; background: var(--surface2); border-radius: 1px; overflow: hidden; }
+  .dropoff-fill { height: 100%; border-radius: 1px; }
+  .dropoff-val { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--red); width: 24px; text-align: right; }
 </style>
 </head>
 <body>
@@ -330,6 +394,92 @@
     </div>
   </div>
 
+  <!-- ══ REGION COMPARISON ══ -->
+  <div class="section-label">区域对比 · 北方 vs 南方沿海 vs 内陆</div>
+  <div class="region-grid" id="region-grid">
+    <div class="region-card north">
+      <div class="region-card-header">
+        <div class="region-card-title" style="color:var(--accent)">北 方</div>
+        <div class="region-card-count" id="region-north-n">N=0</div>
+      </div>
+      <div id="region-north-types"><div class="empty-state" style="height:80px"><div>暂无数据</div></div></div>
+      <div class="region-top-type" id="region-north-top"></div>
+    </div>
+    <div class="region-card coastal">
+      <div class="region-card-header">
+        <div class="region-card-title" style="color:var(--accent2)">南方沿海</div>
+        <div class="region-card-count" id="region-coastal-n">N=0</div>
+      </div>
+      <div id="region-coastal-types"><div class="empty-state" style="height:80px"><div>暂无数据</div></div></div>
+      <div class="region-top-type" id="region-coastal-top"></div>
+    </div>
+    <div class="region-card inland">
+      <div class="region-card-header">
+        <div class="region-card-title" style="color:var(--accent3)">内 陆</div>
+        <div class="region-card-count" id="region-inland-n">N=0</div>
+      </div>
+      <div id="region-inland-types"><div class="empty-state" style="height:80px"><div>暂无数据</div></div></div>
+      <div class="region-top-type" id="region-inland-top"></div>
+    </div>
+  </div>
+
+  <!-- ══ BEHAVIOR ANALYSIS ══ -->
+  <div class="section-label">答题行为分析 · 哪些题最让人犹豫？</div>
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">回退修改 TOP10</div>
+        <div class="panel-badge">修改次数排名</div>
+      </div>
+      <div class="behavior-rank" id="behavior-rank">
+        <div class="empty-state"><div class="empty-icon">🔄</div><div>暂无行为数据</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">回答共识度</div>
+        <div class="panel-badge">越短=越一致</div>
+      </div>
+      <div id="consensus-bars">
+        <div class="empty-state"><div class="empty-icon">⚖️</div><div>暂无数据</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SPEED + DROPOFF ══ -->
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">阅读速度画像</div>
+        <div class="panel-badge">基于答题时长</div>
+      </div>
+      <div id="speed-profile">
+        <div class="empty-state"><div class="empty-icon">⏱️</div><div>暂无行为数据</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">中途退出分析</div>
+        <div class="panel-badge" id="dropoff-total">—</div>
+      </div>
+      <div id="dropoff-bars">
+        <div class="empty-state"><div class="empty-icon">🚪</div><div>暂无退出数据</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PERSONALITY × REGION HEATMAP ══ -->
+  <div class="section-label">人格 × 区域交叉分析</div>
+  <div class="panel" style="margin-bottom:16px">
+    <div class="panel-header">
+      <div class="panel-title">各区域人格分布热力图</div>
+      <div class="panel-badge">% = 占该区域总人数</div>
+    </div>
+    <div class="heatmap-wrap" id="heatmap-wrap">
+      <div class="empty-state"><div class="empty-icon">🌡️</div><div>暂无足够数据</div></div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -432,6 +582,14 @@ function render(data) {
 
   renderRatingChart(data);
   renderFeed(data);
+
+  // New analytics panels
+  renderRegionComparison(data);
+  renderBehaviorRanking(data);
+  renderConsensus(data);
+  renderSpeedProfile(data);
+  renderDropoff(data);
+  renderRegionHeatmap(data);
 }
 
 // ── Personality bars ──
@@ -549,6 +707,316 @@ function renderFeed(data) {
       <div class="feed-text">${d.answers.q26.substring(0,120)}${d.answers.q26.length>120?'…':''}</div>
     </div>`;
   }).join('');
+}
+
+// ═══════════════════ REGION CLASSIFICATION ═══════════════════
+const CITY_REGION = {
+  'Beijing':'north','Tianjin':'north','Shenyang':'north','Dalian':'north','Harbin':'north',
+  'Changchun':'north','Jinan':'north','Qingdao':'north','Yantai':'north','Weihai':'north',
+  'Zibo':'north','Linyi':'north','Weifang':'north',"Xi'an":'north','Xian':'north',
+  'Zhengzhou':'north','Taiyuan':'north','Shijiazhuang':'north','Tangshan':'north',
+  'Baoding':'north','Handan':'north','Hohhot':'north','Baotou':'north','Urumqi':'north',
+  'Lanzhou':'north','Yinchuan':'north','Xining':'north','Luoyang':'north',
+  'Kaifeng':'north','Datong':'north','Yuncheng':'north',
+
+  'Shanghai':'coastal','Nanjing':'coastal','Suzhou':'coastal','Wuxi':'coastal',
+  'Changzhou':'coastal','Zhenjiang':'coastal','Yangzhou':'coastal','Nantong':'coastal',
+  'Hangzhou':'coastal','Ningbo':'coastal','Wenzhou':'coastal','Jiaxing':'coastal',
+  'Huzhou':'coastal','Shaoxing':'coastal','Jinhua':'coastal','Taizhou':'coastal',
+  'Fuzhou':'coastal','Xiamen':'coastal','Quanzhou':'coastal','Zhangzhou':'coastal',
+  'Putian':'coastal','Guangzhou':'coastal','Shenzhen':'coastal','Dongguan':'coastal',
+  'Foshan':'coastal','Zhuhai':'coastal','Zhongshan':'coastal','Huizhou':'coastal',
+  'Shantou':'coastal','Jiangmen':'coastal','Zhanjiang':'coastal','Haikou':'coastal',
+  'Sanya':'coastal','Nanning':'coastal','Guilin':'coastal','Liuzhou':'coastal',
+  'Beihai':'coastal','Fangchenggang':'coastal',
+
+  'Chengdu':'inland','Chongqing':'inland','Wuhan':'inland','Changsha':'inland',
+  'Nanchang':'inland','Hefei':'inland','Wuhu':'inland','Anqing':'inland',
+  'Kunming':'inland','Guiyang':'inland','Lhasa':'inland','Yichang':'inland',
+  'Xiangyang':'inland','Zhuzhou':'inland','Xiangtan':'inland','Hengyang':'inland',
+  'Yueyang':'inland','Jiujiang':'inland','Ganzhou':'inland','Mianyang':'inland',
+  'Nanchong':'inland','Yibin':'inland','Dazhou':'inland','Luzhou':'inland',
+  'Zunyi':'inland','Bijie':'inland','Qujing':'inland',
+};
+const REGION_LABELS = { north:'北方', coastal:'南方沿海', inland:'内陆' };
+
+function classifyRegion(city) {
+  if (!city) return 'unknown';
+  if (CITY_REGION[city]) return CITY_REGION[city];
+  return 'unknown';
+}
+
+// ═══════════════════ REGION COMPARISON ═══════════════════
+function renderRegionComparison(data) {
+  const regions = { north: { total: 0, types: {} }, coastal: { total: 0, types: {} }, inland: { total: 0, types: {} } };
+  TYPE_ORDER.forEach(t => {
+    regions.north.types[t] = 0;
+    regions.coastal.types[t] = 0;
+    regions.inland.types[t] = 0;
+  });
+
+  data.forEach(d => {
+    const r = classifyRegion(d.city);
+    if (!regions[r]) return;
+    regions[r].total++;
+    if (d.winner) regions[r].types[d.winner] = (regions[r].types[d.winner] || 0) + 1;
+  });
+
+  ['north','coastal','inland'].forEach(r => {
+    const info = regions[r];
+    const prefix = r === 'north' ? 'region-north' : r === 'coastal' ? 'region-coastal' : 'region-inland';
+    document.getElementById(`${prefix}-n`).textContent = `N=${info.total}`;
+
+    if (info.total === 0) {
+      document.getElementById(`${prefix}-types`).innerHTML = '<div class="empty-state" style="height:80px"><div>暂无数据</div></div>';
+      document.getElementById(`${prefix}-top`).innerHTML = '';
+      return;
+    }
+
+    const sorted = TYPE_ORDER.map(t => [t, info.types[t]]).sort((a, b) => b[1] - a[1]);
+    document.getElementById(`${prefix}-types`).innerHTML = sorted.map(([t, n]) => {
+      const pct = Math.round(n / info.total * 100);
+      return `<div class="region-type-row">
+        <div class="region-type-dot" style="background:${TYPE_COLORS[t]}"></div>
+        <div class="region-type-name">${TYPE_LABELS[t]}</div>
+        <div class="region-type-bar"><div class="region-type-fill" style="width:${pct}%;background:${TYPE_COLORS[t]}"></div></div>
+        <div class="region-type-pct">${pct}%</div>
+      </div>`;
+    }).join('');
+
+    const [topT, topN] = sorted[0];
+    document.getElementById(`${prefix}-top`).innerHTML = topN > 0
+      ? `主导人格：<strong style="color:${TYPE_COLORS[topT]}">${TYPE_LABELS[topT]}</strong>（${Math.round(topN/info.total*100)}%）`
+      : '';
+  });
+}
+
+// ═══════════════════ BEHAVIOR RANKING ═══════════════════
+const Q_SHORT_LABELS = {
+  'q3':'生活状态','q4':'住所类型','q5':'居住时长','q6':'解锁成就','q7':'购物方式',
+  'q8':'摇人求助','q9':'公共设施探索','q10':'老店关门','q11':'公共空间频率',
+  'q12':'光顾功能','q13':'防沉迷','q14':'去场所动机','q15':'选择因素',
+  'q16':'公共空间模式','q17':'陌生人互动难度','q18':'熟人交谈难度',
+  'q19':'附近消失概念','q20':'附近消失感知','q21':'对消失态度','q22':'罪魁祸首',
+  'q23':'观点认同','q24':'态度量表','q25':'未来意愿','q26':'开放题'
+};
+
+function renderBehaviorRanking(data) {
+  const el = document.getElementById('behavior-rank');
+  const withBehavior = data.filter(d => d.behavior && d.behavior.changeCounts);
+  if (!withBehavior.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🔄</div><div>暂无行为数据（需新版提交）</div></div>';
+    return;
+  }
+
+  const globalChanges = {};
+  withBehavior.forEach(d => {
+    const cc = d.behavior.changeCounts || {};
+    Object.entries(cc).forEach(([qid, count]) => {
+      globalChanges[qid] = (globalChanges[qid] || 0) + count;
+    });
+  });
+
+  const sorted = Object.entries(globalChanges).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  if (!sorted.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🔄</div><div>暂无修改记录</div></div>';
+    return;
+  }
+
+  const maxChange = sorted[0][1];
+  el.innerHTML = sorted.map(([qid, count], i) => {
+    const label = Q_SHORT_LABELS[qid] || qid;
+    const barPct = Math.round(count / Math.max(maxChange, 1) * 100);
+    return `<div class="behavior-item">
+      <div class="behavior-rank-num">${i+1}</div>
+      <div class="behavior-qid">${qid.toUpperCase()}</div>
+      <div class="behavior-label">${label}</div>
+      <div class="behavior-change-bar"><div class="behavior-change-fill" style="width:${barPct}%"></div></div>
+      <div class="behavior-change-count">${count}次</div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════ CONSENSUS ═══════════════════
+function renderConsensus(data) {
+  const el = document.getElementById('consensus-bars');
+  const questions = [
+    { qid: 'q3', label: '生活状态', keys: ['A','B','C','D','E','F'] },
+    { qid: 'q7', label: '购物方式', keys: ['A','B','C','D'] },
+    { qid: 'q10', label: '老店关门', keys: ['A','B','C','D'] },
+    { qid: 'q11', label: '公共空间频率', keys: ['A','B','C','D','E'] },
+    { qid: 'q17', label: '陌生人互动难度', keys: ['A','B','C','D','E'] },
+    { qid: 'q18', label: '熟人交谈难度', keys: ['A','B','C','D','E'] },
+    { qid: 'q19', label: '附近消失概念', keys: ['A','B','C','D'] },
+    { qid: 'q20', label: '附近消失感知', keys: ['A','B','C','D'] },
+    { qid: 'q21', label: '对消失态度', keys: ['A','B','C','D','E'] },
+    { qid: 'q23', label: '观点认同', keys: ['A','B','C','D'] },
+    { qid: 'q25', label: '未来意愿', keys: ['A','B','C','D','E'] },
+  ];
+
+  const scores = questions.map(q => {
+    const counts = {}; q.keys.forEach(k => counts[k] = 0);
+    let total = 0;
+    data.forEach(d => {
+      const ans = d.answers && d.answers[q.qid];
+      if (ans) { counts[ans] = (counts[ans] || 0) + 1; total++; }
+    });
+    if (!total) return { ...q, score: 0, total: 0 };
+    const maxPct = Math.max(...Object.values(counts).map(c => Math.round(c / total * 100)));
+    return { ...q, score: maxPct, total };
+  });
+
+  scores.sort((a, b) => a.score - b.score);
+
+  el.innerHTML = scores.map(q => {
+    const consensusColor = q.score >= 65 ? 'var(--accent2)' : q.score >= 45 ? 'var(--accent3)' : 'var(--red)';
+    const icon = q.score >= 65 ? '🟢' : q.score >= 45 ? '🟡' : '🔴';
+    return `<div class="consensus-bar">
+      <div class="consensus-icon">${icon}</div>
+      <div style="font-size:10px;color:var(--text-dim);width:90px;text-align:right">${q.label}</div>
+      <div class="consensus-track"><div class="consensus-fill" style="width:${q.score}%;background:${consensusColor}"></div></div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:${consensusColor};width:32px;text-align:right">${q.score}%</span>
+    </div>`;
+  }).join('') + `<div style="font-size:10px;color:var(--text-muted);margin-top:8px;text-align:center">← 低共识（争议大）&nbsp;&nbsp;&nbsp;&nbsp;高共识（一致同意）→</div>`;
+}
+
+// ═══════════════════ SPEED PROFILE ═══════════════════
+function renderSpeedProfile(data) {
+  const el = document.getElementById('speed-profile');
+  const withDuration = data.filter(d => d.behavior && d.behavior.totalDuration);
+  if (!withDuration.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">⏱️</div><div>暂无行为数据（需新版提交）</div></div>';
+    return;
+  }
+
+  const categories = { lightning: { label: '闪电侠 (<60s)', count: 0, color: 'var(--accent)' },
+    careful: { label: '认真型 (1-3min)', count: 0, color: 'var(--accent2)' },
+    thinker: { label: '沉思者 (3-6min)', count: 0, color: 'var(--hughost)' },
+    deep: { label: '深度读者 (>6min)', count: 0, color: 'var(--laoma)' } };
+
+  withDuration.forEach(d => {
+    const sec = d.behavior.totalDuration / 1000;
+    if (sec < 60) categories.lightning.count++;
+    else if (sec < 180) categories.careful.count++;
+    else if (sec < 360) categories.thinker.count++;
+    else categories.deep.count++;
+  });
+
+  const total = withDuration.length;
+  const avgSec = withDuration.reduce((s, d) => s + d.behavior.totalDuration / 1000, 0) / total;
+
+  const maxCount = Math.max(...Object.values(categories).map(c => c.count), 1);
+  el.innerHTML = Object.values(categories).map(c => {
+    const pct = Math.round(c.count / total * 100);
+    const barPct = Math.round(c.count / maxCount * 100);
+    return `<div class="speed-row">
+      <div class="speed-label" style="color:${c.color}">${c.label.split('(')[0].trim()}</div>
+      <div class="speed-bar"><div class="speed-fill" style="width:${barPct}%;background:${c.color}"></div></div>
+      <div class="speed-val">${c.count}人 (${pct}%)</div>
+    </div>`;
+  }).join('') + `<div style="font-size:10px;color:var(--text-muted);margin-top:12px;text-align:center">平均用时：${Math.round(avgSec/60)}分${Math.round(avgSec%60)}秒</div>`;
+
+  // Also show backtrack stats
+  const totalBacktracks = withDuration.reduce((s, d) => s + (d.behavior.backtracks || 0), 0);
+  const avgBacktracks = (totalBacktracks / total).toFixed(1);
+  const backtrackers = withDuration.filter(d => (d.behavior.backtracks || 0) > 0).length;
+  el.innerHTML += `<div style="font-size:10px;color:var(--text-muted);margin-top:4px;text-align:center">回退过的人数：${backtrackers}/${total} · 人均回退：${avgBacktracks}次</div>`;
+}
+
+// ═══════════════════ DROPOFF ═══════════════════
+function renderDropoff(data) {
+  const el = document.getElementById('dropoff-bars');
+  const completeSet = new Set(['q3','q4','q5','q7','q9','q10','q11','q16','q17','q18','q19','q20','q21','q23','q25']);
+  const incomplete = data.filter(d => {
+    const ans = d.answers || {};
+    for (const qid of completeSet) {
+      if (!ans[qid]) return true;
+    }
+    return false;
+  });
+
+  document.getElementById('dropoff-total').textContent = `${incomplete.length}人不完整`;
+  if (!incomplete.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div>所有人都完成了问卷！</div></div>';
+    return;
+  }
+
+  const lastQCounts = {};
+  const allQids = ['q3','q4','q5','q6','q7','q8','q9','q10','q11','q12','q13','q14','q15','q16','q17','q18','q19','q20','q21','q22','q23','q24','q25'];
+  incomplete.forEach(d => {
+    const ans = d.answers || {};
+    let lastQ = 'q3';
+    for (const qid of allQids) {
+      if (ans[qid] !== undefined && ans[qid] !== null && ans[qid] !== '' && (!Array.isArray(ans[qid]) || ans[qid].length > 0)) {
+        lastQ = qid;
+      } else {
+        break;
+      }
+    }
+    lastQCounts[lastQ] = (lastQCounts[lastQ] || 0) + 1;
+  });
+
+  const sorted = Object.entries(lastQCounts).sort((a, b) => b[1] - a[1]).slice(0, 12);
+  const maxCount = sorted.length ? sorted[0][1] : 1;
+
+  el.innerHTML = sorted.map(([qid, count]) => {
+    const label = Q_SHORT_LABELS[qid] || qid;
+    const barPct = Math.round(count / maxCount * 100);
+    return `<div class="dropoff-bar">
+      <div class="dropoff-q">${qid.toUpperCase()}</div>
+      <div style="font-size:10px;color:var(--text-dim);width:90px">${label}</div>
+      <div class="dropoff-track"><div class="dropoff-fill" style="width:${barPct}%;background:var(--red)"></div></div>
+      <div class="dropoff-val">${count}</div>
+    </div>`;
+  }).join('') + `<div style="font-size:10px;color:var(--text-muted);margin-top:8px;text-align:center">最后停留的题目（后一道未作答）</div>`;
+}
+
+// ═══════════════════ REGION × PERSONALITY HEATMAP ═══════════════════
+function renderRegionHeatmap(data) {
+  const el = document.getElementById('heatmap-wrap');
+  const regions = { north: { total: 0, types: {} }, coastal: { total: 0, types: {} }, inland: { total: 0, types: {} } };
+  TYPE_ORDER.forEach(t => {
+    regions.north.types[t] = 0;
+    regions.coastal.types[t] = 0;
+    regions.inland.types[t] = 0;
+  });
+
+  data.forEach(d => {
+    const r = classifyRegion(d.city);
+    if (!regions[r]) return;
+    regions[r].total++;
+    if (d.winner) regions[r].types[d.winner]++;
+  });
+
+  const regionKeys = ['north', 'coastal', 'inland'];
+  const hasData = regionKeys.some(r => regions[r].total > 0);
+  if (!hasData) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🌡️</div><div>暂无足够数据</div></div>';
+    return;
+  }
+
+  el.innerHTML = `<table class="heatmap-table">
+    <thead><tr><th>人格类型</th>${regionKeys.map(r => `<th>${REGION_LABELS[r]}<br><span style="font-weight:400">N=${regions[r].total}</span></th>`).join('')}<th>全样本</th></tr></thead>
+    <tbody>${TYPE_ORDER.map(t => {
+      let allTotal = 0;
+      const cells = regionKeys.map(r => {
+        const pct = regions[r].total ? Math.round(regions[r].types[t] / regions[r].total * 100) : 0;
+        allTotal += regions[r].types[t];
+        const intensity = Math.min(pct / 100, 1);
+        const bg = `rgba(${hexToRgb(TYPE_COLORS[t])},${0.1 + intensity * 0.7})`;
+        return `<td><span class="heatmap-cell" style="background:${bg};color:${TYPE_COLORS[t]}">${pct}%</span></td>`;
+      });
+      const totalAll = regions.north.total + regions.coastal.total + regions.inland.total;
+      const allPct = totalAll ? Math.round(allTotal / totalAll * 100) : 0;
+      return `<tr><td style="color:${TYPE_COLORS[t]};font-weight:500">${TYPE_LABELS[t]}</td>${cells.join('')}<td><span class="heatmap-cell" style="color:${TYPE_COLORS[t]}">${allPct}%</span></td></tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return `${r},${g},${b}`;
 }
 
 // ═══════════════════ CLOCK ═══════════════════
