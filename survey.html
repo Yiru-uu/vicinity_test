@@ -419,6 +419,8 @@
     transition: border-color 0.15s, background 0.15s;
     position: relative;
     overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
   .option-item::before {
@@ -435,6 +437,10 @@
   .no-flash .option-item::after {
     transition: none !important;
   }
+  .no-flash .option-item:hover { border-color: var(--border); }
+  .no-flash .option-item:hover::before { opacity: 0; }
+  .no-flash .option-item .option-text:hover,
+  .no-flash .option-item:hover .option-text { color: var(--text-dim); }
 
   .option-item:hover { border-color: var(--accent); }
   .option-item:hover::before { opacity: 0.04; }
@@ -1497,6 +1503,9 @@ function renderCurrentQuestion() {
   if (!entry) { computeAndShowResult(); return; }
 
   const { pageIdx, qi, q } = entry;
+
+  // Scroll to top to break mobile sticky-hover on new content
+  window.scrollTo(0, 0);
   
   // Track first view
   if (!questionFirstSeen[q.id]) {
@@ -1587,10 +1596,6 @@ function renderCurrentQuestion() {
   } else {
     btnNext.style.display = 'none';
   }
-
-  requestAnimationFrame(() => {
-    document.getElementById('survey').scrollIntoView({ behavior: 'instant', block: 'start' });
-  });
 }
 
 // ═══════════════════════════════════════
