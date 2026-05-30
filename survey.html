@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -416,7 +416,7 @@
     background: var(--surface);
     border: 1px solid var(--border);
     cursor: pointer;
-    transition: all 0.18s;
+    transition: border-color 0.15s, background 0.15s;
     position: relative;
     overflow: hidden;
   }
@@ -428,6 +428,12 @@
     background: var(--accent);
     opacity: 0;
     transition: opacity 0.18s;
+  }
+
+  .no-flash .option-item,
+  .no-flash .option-item::before,
+  .no-flash .option-item::after {
+    transition: none !important;
   }
 
   .option-item:hover { border-color: var(--accent); }
@@ -1561,6 +1567,12 @@ function renderCurrentQuestion() {
   block.innerHTML = inner;
   container.appendChild(block);
 
+  // No-flash: suppress CSS transitions on initial render to prevent "半高亮" ghost
+  container.classList.add('no-flash');
+  requestAnimationFrame(() => {
+    container.classList.remove('no-flash');
+  });
+
   const totalQ = allFlat.length;
   document.getElementById('progress-text').textContent = `${currentQIdx + 1} / ${totalQ}`;
   document.getElementById('progress-fill').style.width = `${((currentQIdx + 1) / totalQ) * 100}%`;
@@ -1592,7 +1604,16 @@ function selectSingle(qid, key, el, isCheck, isTerminal) {
 
   if (isTerminal) {
     isTerminated = true;
-    setTimeout(() => computeAndShowResult(), 400);
+    const entry = allFlat[currentQIdx];
+    const question = entry ? entry.q : null;
+    const chosenOpt = question ? question.options.find(o => o.key === key) : null;
+    const hasRealScores = chosenOpt && chosenOpt.scores && Object.keys(chosenOpt.scores).filter(k => chosenOpt.scores[k] > 0).length > 0;
+
+    if (hasRealScores) {
+      setTimeout(() => computeAndShowResult(), 400);
+    } else {
+      setTimeout(() => showTerminatedScreen(), 400);
+    }
     return;
   }
 
@@ -1688,12 +1709,6 @@ function computeAndShowResult() {
     });
   });
 
-  // Boost for low participation
-  if (isTerminated) {
-    scores.oenbye += 1;
-    scores.apiao += 1;
-  }
-
   // Find winner
   const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
   let winner = sorted[0][0];
@@ -1712,6 +1727,29 @@ function addScores(target, src) {
 // ═══════════════════════════════════════
 // RESULT DISPLAY
 // ═══════════════════════════════════════
+function showTerminatedScreen() {
+  document.getElementById('survey').style.display = 'none';
+  document.getElementById('result').style.display = 'block';
+  window.scrollTo(0, 0);
+
+  document.getElementById('result-badge').textContent = '感谢参与';
+  document.getElementById('result-badge').style.cssText = 'background: rgba(136,153,170,0.12); color: #8899aa; border: 1px solid rgba(136,153,170,0.3);';
+
+  document.getElementById('result-title').textContent = '谢谢你的时间';
+  document.getElementById('result-title').style.color = '#8899aa';
+
+  document.getElementById('result-subtitle').textContent = '你的回答不在本问卷的目标人群中，但这本身就是一种珍贵的记录';
+
+  document.getElementById('result-image').style.display = 'none';
+
+  document.getElementById('result-verdict').textContent = '每一个流动的、游离的、不在边界内的存在，都是"附近"这个概念的另一面。也许你正是那个站在"附近"之外，却看得最清楚的人。感谢你的参与。';
+  document.getElementById('result-verdict').style.borderColor = 'rgba(136,153,170,0.3)';
+
+  document.getElementById('score-bars').innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:20px">本问卷无需为你计算人格类型<br>你的回答已匿名记录</div>';
+
+  submitToBackend(answers, 'terminated', {});
+}
+
 function showResult(winner, scores) {
   document.getElementById('survey').style.display = 'none';
   document.getElementById('result').style.display = 'block';
