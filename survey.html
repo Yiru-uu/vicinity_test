@@ -9,23 +9,23 @@
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap');
 
   :root {
-    --bg: #0e0e10;
-    --surface: #1a1a20;
-    --surface2: #24242e;
-    --border: #353545;
-    --accent: #e8c547;
-    --accent2: #7ecfb3;
-    --accent3: #e87c5a;
+    --bg: #0c0c14;
+    --surface: #1c1c28;
+    --surface2: #282836;
+    --border: #4a4a5e;
+    --accent: #f0d050;
+    --accent2: #8edcc0;
+    --accent3: #f08c6a;
     --text: #ffffff;
-    --text-dim: #b0b0b0;
-    --text-muted: #707070;
-    --looker: #7ecfb3;
-    --laoma: #f0a050;
-    --hughost: #9b8ec4;
-    --oenbye: #888899;
-    --wifier: #5aabde;
-    --bystander: #b0a870;
-    --apiao: #c0c0c8;
+    --text-dim: #e8e8ec;
+    --text-muted: #c8c8d4;
+    --looker: #8edcc0;
+    --laoma: #f5b060;
+    --hughost: #a898d4;
+    --oenbye: #9898a8;
+    --wifier: #6ab8e8;
+    --bystander: #c0b878;
+    --apiao: #d0d0d8;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -36,7 +36,7 @@
     background: var(--bg);
     color: var(--text);
     font-family: 'Noto Sans SC', sans-serif;
-    font-weight: 300;
+    font-weight: 400;
     line-height: 1.7;
     min-height: 100vh;
     overflow-x: hidden;
@@ -76,7 +76,7 @@
     right: -100px;
     width: 500px;
     height: 500px;
-    background: radial-gradient(circle, rgba(232,197,71,0.07) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(240,208,80,0.07) 0%, transparent 70%);
     pointer-events: none;
   }
 
@@ -161,9 +161,9 @@
   }
 
   .btn-start:hover {
-    background: #f0d050;
+    background: #f8d860;
     transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(232,197,71,0.2);
+    box-shadow: 0 8px 32px rgba(240,208,80,0.2);
   }
 
   .btn-start svg { transition: transform 0.2s; }
@@ -190,8 +190,8 @@
   .cover-grid {
     position: absolute; inset: 0;
     background-image:
-      linear-gradient(rgba(232,197,71,0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(232,197,71,0.02) 1px, transparent 1px);
+      linear-gradient(rgba(240,208,80,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(240,208,80,0.04) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 
@@ -219,13 +219,13 @@
     top: 10%; right: 15%;
     width: 48px; height: 48px;
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #f5e6b8, #e8c547);
-    box-shadow: 0 0 60px rgba(232,197,71,0.15), 0 0 120px rgba(232,197,71,0.05);
+    background: radial-gradient(circle at 35% 35%, #f8e8c0, #f0d050);
+    box-shadow: 0 0 60px rgba(240,208,80,0.15), 0 0 120px rgba(240,208,80,0.05);
     animation: moonGlow 4s ease-in-out infinite;
   }
   @keyframes moonGlow {
-    0%, 100% { box-shadow: 0 0 60px rgba(232,197,71,0.15), 0 0 120px rgba(232,197,71,0.05); }
-    50% { box-shadow: 0 0 80px rgba(232,197,71,0.2), 0 0 150px rgba(232,197,71,0.08); }
+    0%, 100% { box-shadow: 0 0 60px rgba(240,208,80,0.15), 0 0 120px rgba(240,208,80,0.05); }
+    50% { box-shadow: 0 0 80px rgba(240,208,80,0.2), 0 0 150px rgba(240,208,80,0.08); }
   }
 
   /* Skyline */
@@ -237,8 +237,8 @@
   .cover-building {
     position: absolute; bottom: 0;
     width: var(--w); height: var(--h);
-    background: #14141c;
-    border: 1px solid #252535;
+    background: #1c1c2a;
+    border: 1px solid var(--border);
     border-bottom: none;
   }
   .cover-window {
@@ -260,7 +260,7 @@
     bottom: 0; left: 0; right: 0;
     height: 8px;
     background: #1a1a28;
-    border-top: 1px solid #2a2a3a;
+    border-top: 1px solid var(--border);
   }
 
   /* Street lamp */
@@ -268,7 +268,7 @@
     position: absolute;
     bottom: 8px;
     width: 2px; height: 60px;
-    background: #2a2a3a;
+    background: var(--border);
   }
   .cover-lamp::after {
     content: '';
@@ -277,7 +277,7 @@
     width: 14px; height: 6px;
     background: var(--accent);
     opacity: 0.7;
-    box-shadow: 0 0 20px var(--accent), 0 0 40px rgba(232,197,71,0.2);
+    box-shadow: 0 0 20px var(--accent), 0 0 40px rgba(240,208,80,0.2);
     animation: lampGlow 2s ease-in-out infinite;
   }
   @keyframes lampGlow {
@@ -319,7 +319,7 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(14,14,16,0.95);
+    background: rgba(12,12,20,0.95);
     backdrop-filter: blur(12px);
     padding: 16px 24px;
     border-bottom: 1px solid var(--border);
@@ -472,7 +472,7 @@
   .option-item.selected .option-key {
     border-color: var(--accent);
     color: var(--accent);
-    background: rgba(232,197,71,0.1);
+    background: rgba(240,208,80,0.1);
   }
 
   .option-text {
@@ -504,7 +504,7 @@
 
   .rating-table td {
     padding: 12px 8px;
-    border-bottom: 1px solid rgba(53,53,69,0.5);
+    border-bottom: 1px solid rgba(74,74,94,0.5);
     vertical-align: middle;
   }
 
@@ -537,7 +537,7 @@
   .rating-radio:checked {
     border-color: var(--accent);
     background: var(--accent);
-    box-shadow: 0 0 0 3px rgba(232,197,71,0.15);
+    box-shadow: 0 0 0 3px rgba(240,208,80,0.15);
   }
 
   .rating-radio:hover { border-color: var(--accent); }
@@ -593,8 +593,8 @@
   }
 
   .btn-nav.primary:hover {
-    background: #f0d050;
-    box-shadow: 0 4px 20px rgba(232,197,71,0.2);
+    background: #f8d860;
+    box-shadow: 0 4px 20px rgba(240,208,80,0.2);
   }
 
   .btn-nav:disabled { opacity: 0.3; cursor: not-allowed; }
@@ -906,20 +906,20 @@
     <div class="cover-walker" style="left:30%">
       <svg width="24" height="36" viewBox="0 0 24 36" fill="none">
         <!-- Body -->
-        <rect x="8" y="4" width="8" height="8" rx="1" fill="#e8c547" opacity="0.7"/>
-        <rect x="8" y="12" width="8" height="10" rx="1" fill="#e8c547" opacity="0.5"/>
+        <rect x="8" y="4" width="8" height="8" rx="1" fill="#f0d050" opacity="0.7"/>
+        <rect x="8" y="12" width="8" height="10" rx="1" fill="#f0d050" opacity="0.5"/>
         <!-- Legs -->
-        <rect x="8" y="22" width="4" height="10" rx="1" fill="#e8c547" opacity="0.4"/>
-        <rect x="12" y="22" width="4" height="8" rx="1" fill="#e8c547" opacity="0.35"/>
+        <rect x="8" y="22" width="4" height="10" rx="1" fill="#f0d050" opacity="0.4"/>
+        <rect x="12" y="22" width="4" height="8" rx="1" fill="#f0d050" opacity="0.35"/>
       </svg>
     </div>
     
     <div class="cover-walker" style="left:65%;animation-delay:6s">
       <svg width="24" height="36" viewBox="0 0 24 36" fill="none">
-        <rect x="8" y="4" width="8" height="8" rx="1" fill="#e8c547" opacity="0.6"/>
-        <rect x="8" y="12" width="8" height="10" rx="1" fill="#e8c547" opacity="0.4"/>
-        <rect x="8" y="22" width="4" height="10" rx="1" fill="#e8c547" opacity="0.3"/>
-        <rect x="12" y="22" width="4" height="8" rx="1" fill="#e8c547" opacity="0.25"/>
+        <rect x="8" y="4" width="8" height="8" rx="1" fill="#f0d050" opacity="0.6"/>
+        <rect x="8" y="12" width="8" height="10" rx="1" fill="#f0d050" opacity="0.4"/>
+        <rect x="8" y="22" width="4" height="10" rx="1" fill="#f0d050" opacity="0.3"/>
+        <rect x="12" y="22" width="4" height="8" rx="1" fill="#f0d050" opacity="0.25"/>
       </svg>
     </div>
   </div>
