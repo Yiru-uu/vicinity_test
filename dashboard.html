@@ -518,6 +518,13 @@ async function refreshData() { const data = await loadData(); render(data); upda
 
 // ═══════════════════ RENDER ═══════════════════
 function render(data) {
+  // 过滤掉 Q1-B 或 Q2-D 的终端答题者（不应计入统计）
+  const terminated = new Set();
+  data.forEach(d => {
+    const ans = d.answers || {};
+    if (ans.q1 === 'B' || ans.q2 === 'D') terminated.add(d.id || d.ts);
+  });
+  data = data.filter(d => !terminated.has(d.id || d.ts));
   const total = data.length;
 
   // KPIs
