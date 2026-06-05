@@ -1535,7 +1535,7 @@ function renderCurrentQuestion() {
     inner += `<div class="options-list">`;
     q.options.forEach(opt => {
       const sel = answers[q.id] === opt.key ? ' selected' : '';
-      inner += `<div class="option-item${sel}" onclick="selectSingle('${q.id}','${opt.key}',this,${q.isCheck||false},${!!opt.terminal})">
+      inner += `<div class="option-item${sel}" onclick="selectSingle('${q.id}','${opt.key}',this,${q.isCheck||false},${!!opt.terminal},${!!opt.skipToQ17})">
         <div class="option-key">${opt.key}</div>
         <div class="option-text">${opt.text}</div>
       </div>`;
@@ -1601,7 +1601,7 @@ function renderCurrentQuestion() {
 // ═══════════════════════════════════════
 // SELECTION HANDLERS
 // ═══════════════════════════════════════
-function selectSingle(qid, key, el, isCheck, isTerminal) {
+function selectSingle(qid, key, el, isCheck, isTerminal, skipToQ17) {
   const hadAnswer = !!answers[qid];
   answers[qid] = key;
   updateSelection(el);
@@ -1618,6 +1618,19 @@ function selectSingle(qid, key, el, isCheck, isTerminal) {
       setTimeout(() => computeAndShowResult(), 400);
     } else {
       setTimeout(() => showTerminatedScreen(), 400);
+    }
+    return;
+  }
+
+  if (skipToQ17) {
+    const q17Idx = allFlat.findIndex(e => e.q.id === 'q17');
+    if (q17Idx !== -1) {
+      setTimeout(() => {
+        currentQIdx = q17Idx;
+        renderCurrentQuestion();
+      }, 300);
+    } else {
+      setTimeout(() => advanceQuestion(), 300);
     }
     return;
   }
@@ -1674,6 +1687,17 @@ function prevQuestion() {
   if (currentQIdx > 0) {
     backtracks++;
     trackEvent(allFlat[currentQIdx].q.id, 'back');
+
+    // 如果当前在 Q17，且 Q11 选了 E（skipToQ17），则返回 Q11 而非 Q16
+    if (allFlat[currentQIdx].q.id === 'q17' && answers['q11'] === 'E') {
+      const q11Idx = allFlat.findIndex(e => e.q.id === 'q11');
+      if (q11Idx !== -1) {
+        currentQIdx = q11Idx;
+        renderCurrentQuestion();
+        return;
+      }
+    }
+
     currentQIdx--;
     renderCurrentQuestion();
   }
