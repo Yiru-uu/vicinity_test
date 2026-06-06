@@ -1138,10 +1138,10 @@ const pages = [
         text: '你的住所属于哪种类型？',
         options: [
           { key: 'A', text: '高端私密领地：商品住宅（有门禁管理）', scores: { oenbye: 1 } },
-          { key: 'B', text: '自带年代滤镜：单位房或老旧小区', scores: { looker: 1, laoma: 1 } },
-          { key: 'C', text: '城市独居美学：公寓', scores: { oenbye: 1, hughost: 1 } },
-          { key: 'D', text: '野生折叠空间：城中村', scores: { laoma: 1, looker: 1 } },
-          { key: 'E', text: '多人联机生活：单位宿舍、校园宿舍', scores: { looker: 1 } }
+          { key: 'B', text: '自带年代滤镜：单位房或老旧小区', scores: { laoma: 1 } },
+          { key: 'C', text: '城市独居美学：公寓', scores: { hughost: 1 } },
+          { key: 'D', text: '野生折叠空间：城中村', scores: { laoma: 1 } },
+          { key: 'E', text: '多人联机生活：单位宿舍、校园宿舍', scores: { apiao: 1 } }
         ]
       },
       {
@@ -1150,9 +1150,9 @@ const pages = [
         text: '你在现住处已经连续居住多久了？',
         options: [
           { key: 'A', text: '初来乍到，地图还没开：3个月-6个月', scores: { wifier: 1 } },
-          { key: 'B', text: '稍微混了个脸熟：6个月-1年', scores: {} },
-          { key: 'C', text: '算是个老住户了：1年-3年', scores: { looker: 1 } },
-          { key: 'D', text: '这地儿的狗见你都得摇尾巴：超过3年', scores: { looker: 2 } }
+          { key: 'B', text: '稍微混了个脸熟：6个月-1年', scores: { apiao: 1 } },
+          { key: 'C', text: '算是个老住户了：1年-3年', scores: { bystander: 1 } },
+          { key: 'D', text: '这地儿的狗见你都得摇尾巴：超过3年', scores: { looker: 1 } }
         ]
       },
       {
@@ -1161,13 +1161,13 @@ const pages = [
         text: '过去1个月，你在家附近解锁过哪些成就？',
         hint: '可多选',
         options: [
-          { key: 'A', text: '城市漫步：特意逛了逛周边的巷子，发现了新大陆', scores: { hughost: 2, looker: 1 } },
-          { key: 'B', text: '社交牛杂症：主动和邻居打招呼、聊天，甚至互帮互助', scores: { laoma: 3, looker: 2 } },
-          { key: 'C', text: '实体店守护者：特意少点外卖，去楼下小店照顾生意', scores: { looker: 2 } },
-          { key: 'D', text: '闲聊达人：买东西时顺便和老板聊了五毛钱的天', scores: { looker: 1, laoma: 1 } },
-          { key: 'E', text: '社区活跃分子：参加过小区组织的线下活动', scores: { laoma: 3 } },
+          { key: 'A', text: '城市漫步：特意逛了逛周边的巷子，发现了新大陆', scores: { hughost: 1 } },
+          { key: 'B', text: '社交牛杂症：主动和邻居打招呼、聊天，甚至互帮互助', scores: { laoma: 1 } },
+          { key: 'C', text: '实体店守护者：特意少点外卖，去楼下小店照顾生意', scores: { looker: 1 } },
+          { key: 'D', text: '闲聊达人：买东西时顺便和老板聊了五毛钱的天', scores: { laoma: 1 } },
+          { key: 'E', text: '社区活跃分子：参加过小区组织的线下活动', scores: { laoma: 2 } },
           { key: 'F', text: '天使投资人：为了楼下小店能活下去，办了充值卡', scores: { looker: 2 } },
-          { key: 'G', text: '隐形人：上面这些都没做过，我和我的家锁死了', scores: { oenbye: 3, wifier: 1 } }
+          { key: 'G', text: '隐形人：上面这些都没做过，我和我的家锁死了', scores: { oenbye: 1 } }
         ]
       },
       {
@@ -1175,10 +1175,10 @@ const pages = [
         type: 'single',
         text: '生命值告急，你如何买吃穿用度维持HP？',
         options: [
-          { key: 'A', text: '外卖/网购之神：能不出门就不出门，全靠网线吊着一口气', scores: { oenbye: 3, wifier: 2 } },
-          { key: 'B', text: '应急才出门：优先网购，除非家里揭不开锅了', scores: { oenbye: 2 } },
+          { key: 'A', text: '外卖/网购之神：能不出门就不出门，全靠网线吊着一口气', scores: { oenbye: 2 } },
+          { key: 'B', text: '应急才出门：优先网购，除非家里揭不开锅了', scores: { oenbye: 1 } },
           { key: 'C', text: '随缘佛系选手：线上线下皆可，主打一个谁快选谁', scores: { apiao: 1 } },
-          { key: 'D', text: '附近拥护者：倾向于去附近的实体店，喜欢就近解决', scores: { looker: 3, laoma: 1 } }
+          { key: 'D', text: '附近拥护者：倾向于去附近的实体店，喜欢就近解决', scores: { looker: 1 } }
         ]
       },
       {
@@ -1187,11 +1187,11 @@ const pages = [
         text: '遇到以下哪种突发危机，你会第一时间向邻居或物业摇人求助？',
         hint: '可多选',
         options: [
-          { key: 'A', text: '家里漏水断电，急需维修工', scores: { looker: 1 } },
-          { key: 'B', text: '临时出门，需要人帮忙收快递/看猫', scores: { looker: 2, laoma: 1 } },
-          { key: 'C', text: '人身安全感到受威胁，需要有人协助或陪同', scores: { looker: 1 } },
-          { key: 'D', text: '突然生病，需要人送医', scores: { looker: 2, laoma: 1 } },
-          { key: 'E', text: '绝不摇人：我社恐，我宁愿自己扛着或者打120', scores: { oenbye: 3 } }
+          { key: 'A', text: '家里漏水断电，急需维修工', scores: {} },
+          { key: 'B', text: '临时出门，需要人帮忙收快递/看猫', scores: { laoma: 1 } },
+          { key: 'C', text: '人身安全感到受威胁，需要有人协助或陪同', scores: {} },
+          { key: 'D', text: '突然生病，需要人送医', scores: { laoma: 1 } },
+          { key: 'E', text: '绝不摇人：我社恐，我宁愿自己扛着或者打120', scores: { oenbye: 2 } }
         ]
       },
       {
@@ -1199,11 +1199,11 @@ const pages = [
         type: 'single',
         text: '你对家附近的公园、活动室等"公共副本"的探索进度是？',
         options: [
-          { key: 'A', text: '大门不出：完全不清楚周边有哪些公共设施', scores: { oenbye: 2, wifier: 2 } },
-          { key: 'B', text: '略有耳闻：知道有几处，但基本没有去过', scores: { apiao: 1 } },
-          { key: 'C', text: '偶尔打卡：知道几处，偶尔会去', scores: { hughost: 1, looker: 1 } },
-          { key: 'D', text: '轻车熟路：比较熟悉，知道具体位置和开放时间，会定期去', scores: { hughost: 2, looker: 1 } },
-          { key: 'E', text: '活地图：非常熟悉，不同设施的细节和使用方式都清楚', scores: { looker: 3, laoma: 1 } }
+          { key: 'A', text: '大门不出：完全不清楚周边有哪些公共设施', scores: { oenbye: 1 } },
+          { key: 'B', text: '略有耳闻：知道有几处，但基本没有去过', scores: { bystander: 1 } },
+          { key: 'C', text: '偶尔打卡：知道几处，偶尔会去', scores: { hughost: 1 } },
+          { key: 'D', text: '轻车熟路：比较熟悉，知道具体位置和开放时间，会定期去', scores: { hughost: 1 } },
+          { key: 'E', text: '活地图：非常熟悉，不同设施的细节和使用方式都清楚', scores: { looker: 2 } }
         ]
       },
       {
@@ -1211,10 +1211,10 @@ const pages = [
         type: 'single',
         text: '过去一年，有没有常去的老店突然"去世"（关门），你却过了很久才发现？',
         options: [
-          { key: 'A', text: '经常：我的心已经麻木了', scores: { oenbye: 2, wifier: 1 } },
-          { key: 'B', text: '偶尔：有过一两次，还挺伤感', scores: { hughost: 1 } },
-          { key: 'C', text: '从未：我常去的店都坚挺得很', scores: { looker: 2, laoma: 1 } },
-          { key: 'D', text: '没注意：我根本不关注它们开不开门', scores: { oenbye: 3, apiao: 1 } }
+          { key: 'A', text: '经常：我的心已经麻木了', scores: { wifier: 1 } },
+          { key: 'B', text: '偶尔：有过一两次，还挺伤感', scores: { bystander: 1 } },
+          { key: 'C', text: '从未：我常去的店都坚挺得很', scores: { looker: 1 } },
+          { key: 'D', text: '没注意：我根本不关注它们开不开门', scores: { apiao: 1 } }
         ]
       }
     ]
@@ -1229,11 +1229,11 @@ const pages = [
         type: 'single',
         text: '你平均每周去公共空间（图书馆、咖啡馆、公园等）的频率是？',
         options: [
-          { key: 'A', text: '把那儿当家了：几乎每天', scores: { hughost: 3, laoma: 1 } },
-          { key: 'B', text: '常客：每周3-5次', scores: { hughost: 2 } },
-          { key: 'C', text: '偶尔放风：每周1-2次', scores: { hughost: 1 } },
+          { key: 'A', text: '把那儿当家了：几乎每天', scores: { hughost: 2 } },
+          { key: 'B', text: '常客：每周3-5次', scores: { hughost: 1 } },
+          { key: 'C', text: '偶尔放风：每周1-2次', scores: { bystander: 1 } },
           { key: 'D', text: '稀客：每月1次甚至更少', scores: { apiao: 1 } },
-          { key: 'E', text: '几乎不去（我是宅神）——跳转至17题', scores: { oenbye: 3, wifier: 2 }, skipToQ17: true }
+          { key: 'E', text: '几乎不去（我是宅神）', scores: { oenbye: 1 }, skipToQ17: true }
         ]
       },
       {
@@ -1245,9 +1245,9 @@ const pages = [
           { key: 'A', text: '文化熏陶：文化馆、展览、图书馆', scores: { hughost: 1 } },
           { key: 'B', text: '民以食为天：餐厅、食堂', scores: {} },
           { key: 'C', text: '燃烧卡路里：健身房、体育场', scores: {} },
-          { key: 'D', text: '去公园之类的地方吸氧/发呆', scores: { hughost: 2 } },
-          { key: 'E', text: '找乐子：剧本杀、Livehouse、创意集市', scores: { laoma: 1, wifier: 1 } },
-          { key: 'F', text: '压马路：城市漫步、街头空间', scores: { looker: 1, hughost: 1 } },
+          { key: 'D', text: '去公园之类的地方吸氧/发呆', scores: { hughost: 1 } },
+          { key: 'E', text: '找乐子：剧本杀、Livehouse、创意集市', scores: { wifier: 1 } },
+          { key: 'F', text: '压马路：城市漫步、街头空间', scores: { hughost: 1 } },
           { key: 'G', text: '其他', scores: {} }
         ]
       },
@@ -1269,11 +1269,11 @@ const pages = [
         text: '你去这些地方的真实动机是？',
         hint: '可多选',
         options: [
-          { key: 'A', text: '寻找隔绝的乌龟壳：主打自闭/躲清静', scores: { hughost: 2, oenbye: 1 } },
-          { key: 'B', text: '聚会/约会工具人：主打陪伴', scores: { laoma: 1 } },
-          { key: 'C', text: '想去偶遇/认识新朋友', scores: { laoma: 2, wifier: 1 } },
+          { key: 'A', text: '寻找隔绝的乌龟壳：主打自闭/躲清静', scores: { hughost: 1 } },
+          { key: 'B', text: '聚会/约会工具人：主打陪伴', scores: {} },
+          { key: 'C', text: '想去偶遇/认识新朋友', scores: { wifier: 1 } },
           { key: 'D', text: '不得不去办事/运动', scores: {} },
-          { key: 'E', text: '假装自己在拍电影：寻找氛围/灵感', scores: { hughost: 2 } },
+          { key: 'E', text: '假装自己在拍电影：寻找氛围/灵感', scores: { hughost: 1 } },
           { key: 'F', text: '逃离"待办事项"的追捕：主打摸鱼/精神出逃', scores: { hughost: 1 } }
         ]
       },
@@ -1285,9 +1285,9 @@ const pages = [
         options: [
           { key: 'A', text: '与家的距离：必须步行可达', scores: { looker: 1 } },
           { key: 'B', text: '价格：免费或低消费优先', scores: {} },
-          { key: 'C', text: '私密性：别打扰我', scores: { oenbye: 2, hughost: 1 } },
-          { key: 'D', text: '颜值：空间的美感或设计质量', scores: { hughost: 2 } },
-          { key: 'E', text: '社交属性：容易遇到兴趣相近的人', scores: { laoma: 2, wifier: 1 } },
+          { key: 'C', text: '私密性：别打扰我', scores: { oenbye: 1 } },
+          { key: 'D', text: '颜值：空间的美感或设计质量', scores: { hughost: 1 } },
+          { key: 'E', text: '社交属性：容易遇到兴趣相近的人', scores: { wifier: 1 } },
           { key: 'F', text: '安全感：环境稳定可预期', scores: { oenbye: 1 } },
           { key: 'G', text: '舒适度：不能让我压力指数上升', scores: {} },
           { key: 'H', text: '其他', scores: {} }
@@ -1298,10 +1298,10 @@ const pages = [
         type: 'single',
         text: '在公共空间，你通常处于什么模式？',
         options: [
-          { key: 'A', text: '结界模式：戴耳机，生人勿近', scores: { hughost: 2, oenbye: 1 } },
-          { key: 'B', text: '待机模式：不介意环境音，偶尔眼神接触', scores: { hughost: 2 } },
-          { key: 'C', text: '开放模式：来者不拒，欢迎搭讪', scores: { laoma: 3 } },
-          { key: 'D', text: '连体婴模式：全程只跟朋友玩', scores: { laoma: 1 } }
+          { key: 'A', text: '结界模式：戴耳机，生人勿近', scores: { hughost: 1 } },
+          { key: 'B', text: '待机模式：不介意环境音，偶尔眼神接触', scores: { hughost: 1 } },
+          { key: 'C', text: '开放模式：来者不拒，欢迎搭讪', scores: { laoma: 2 } },
+          { key: 'D', text: '连体婴模式：全程只跟朋友玩', scores: {} }
         ]
       },
       {
@@ -1309,11 +1309,11 @@ const pages = [
         type: 'single',
         text: '评价一下当需要和陌生人进行简单互动（如问路、短暂聊天）时的难度系数：',
         options: [
-          { key: 'A', text: '非常困难：我会原地去世', scores: { oenbye: 3 } },
-          { key: 'B', text: '比较困难：脚趾扣出三室一厅', scores: { oenbye: 2 } },
+          { key: 'A', text: '非常困难：我会原地去世', scores: { oenbye: 1 } },
+          { key: 'B', text: '比较困难：脚趾扣出三室一厅', scores: { oenbye: 1 } },
           { key: 'C', text: '一般：看心情', scores: { bystander: 1 } },
-          { key: 'D', text: '比较容易：社牛预备役', scores: { looker: 2 } },
-          { key: 'E', text: '非常容易：我是社交恐怖分子', scores: { laoma: 3, looker: 1 } }
+          { key: 'D', text: '比较容易：社牛预备役', scores: { laoma: 1 } },
+          { key: 'E', text: '非常容易：我是社交恐怖分子', scores: { laoma: 1 } }
         ]
       },
       {
@@ -1321,11 +1321,11 @@ const pages = [
         type: 'single',
         text: '评价一下你和熟人或者朋友深入交谈（分享真实感受、谈论价值观等）的难度系数：',
         options: [
-          { key: 'A', text: '非常困难：即使是朋友也无法走心', scores: { oenbye: 2 } },
-          { key: 'B', text: '比较困难：还是聊聊八卦吧', scores: { oenbye: 1 } },
-          { key: 'C', text: '一般：可谈可不谈，没太大感受', scores: { wifier: 1 } },
-          { key: 'D', text: '比较容易：可以当彼此的倾听者', scores: { looker: 1, laoma: 1 } },
-          { key: 'E', text: '非常容易：不跟熟人谈心还跟谁谈心', scores: { laoma: 2, looker: 1 } }
+          { key: 'A', text: '非常困难：即使是朋友也无法走心', scores: { oenbye: 1 } },
+          { key: 'B', text: '比较困难：还是聊聊八卦吧', scores: {} },
+          { key: 'C', text: '一般：可谈可不谈，没太大感受', scores: { bystander: 1 } },
+          { key: 'D', text: '比较容易：可以当彼此的倾听者', scores: { laoma: 1 } },
+          { key: 'E', text: '非常容易：不跟熟人谈心还跟谁谈心', scores: { laoma: 1 } }
         ]
       }
     ]
@@ -1340,7 +1340,7 @@ const pages = [
         type: 'single',
         text: '你听过"家附近慢慢变陌生"这种现象，也就是大家常说的"附近的消失"吗？',
         options: [
-          { key: 'A', text: '非常了解：学术概念不在话下', scores: { looker: 1, bystander: 1 } },
+          { key: 'A', text: '非常了解：学术概念不在话下', scores: { bystander: 1 } },
           { key: 'B', text: '听说过：大概知道啥意思', scores: {} },
           { key: 'C', text: '没听过这个说法，但理解你描述的现象', scores: {} },
           { key: 'D', text: '完全没听过', scores: { apiao: 1 } }
@@ -1354,7 +1354,7 @@ const pages = [
           { key: 'A', text: '是的，加速消失，大家都像陌生人', scores: {} },
           { key: 'B', text: '是的，正在缓慢消失', scores: { bystander: 1 } },
           { key: 'C', text: '没有变化，一直这样', scores: { apiao: 1 } },
-          { key: 'D', text: '不是，我身边的"附近"相对活跃——（恭喜，你的附近还活着！）', scores: { looker: 2, laoma: 1 }, terminal: true }
+          { key: 'D', text: '不是，我身边的"附近"相对活跃——（恭喜，你的附近还活着！）', scores: { laoma: 1 } }
         ]
       },
       {
@@ -1362,11 +1362,11 @@ const pages = [
         type: 'single',
         text: '对于"家附近越来越陌生"这件事，你的态度是？',
         options: [
-          { key: 'A', text: '生活失去了人情味，有点难过', scores: { looker: 2 } },
+          { key: 'A', text: '生活失去了人情味，有点难过', scores: { looker: 1 } },
           { key: 'B', text: '担心万一出事了没人帮，有点慌', scores: { looker: 1 } },
-          { key: 'C', text: '理解但无奈，看到了问题却不知道能做什么', scores: { bystander: 2 } },
+          { key: 'C', text: '理解但无奈，看到了问题却不知道能做什么', scores: { bystander: 1 } },
           { key: 'D', text: '基本接受，认为这是社会发展正常的变化', scores: { oenbye: 1 } },
-          { key: 'E', text: '不以为意，认为这并不成为一个问题', scores: { apiao: 2, oenbye: 1 } }
+          { key: 'E', text: '不以为意，认为这并不成为一个问题', scores: { apiao: 1 } }
         ]
       },
       {
@@ -1377,7 +1377,7 @@ const pages = [
         options: [
           { key: 'A', text: '串门都不方便：住宅区门禁化，物理上阻断了邻里接触', scores: { looker: 1 } },
           { key: 'B', text: '只想躺平：工作和生活压力大，没有时间和精力维系附近关系', scores: { bystander: 1 } },
-          { key: 'C', text: '钟爱冲浪：数字生活已经足够满足社交需求，附近不再必要', scores: { wifier: 2 } },
+          { key: 'C', text: '钟爱冲浪：数字生活已经足够满足社交需求，附近不再必要', scores: { wifier: 1 } },
           { key: 'D', text: '不过是匆匆过客：城市人口流动性高，关系难以沉淀', scores: { bystander: 1 } },
           { key: 'E', text: '互不打扰是最高礼仪：现代人的个体意识增强，主动选择减少摩擦', scores: { oenbye: 1 } },
           { key: 'F', text: '没有烟火气：消费空间标准化、集中化，独立小店消失，公共生活的载体减少', scores: { looker: 1 } },
@@ -1389,8 +1389,8 @@ const pages = [
         type: 'single',
         text: '你更认同以下哪种观点？',
         options: [
-          { key: 'A', text: '远亲不如近邻：地理上的邻近的社交关系有其不可替代的价值，值得主动维护', scores: { looker: 3, laoma: 1 } },
-          { key: 'B', text: '灵魂共振之上：兴趣和价值观的共同点比地理距离更重要，网络让这成为可能', scores: { wifier: 3 } },
+          { key: 'A', text: '远亲不如近邻：地理上的邻近的社交关系有其不可替代的价值，值得主动维护', scores: { laoma: 1 } },
+          { key: 'B', text: '灵魂共振之上：兴趣和价值观的共同点比地理距离更重要，网络让这成为可能', scores: { wifier: 2 } },
           { key: 'C', text: '心有余而力不足：两者都有价值，但当下的生活方式让附近关系难以实现', scores: { bystander: 2 } },
           { key: 'D', text: '实用主义万岁：我不太在乎从哪里获得社交支持，只要能得到就行', scores: { apiao: 1 } }
         ]
@@ -1401,12 +1401,41 @@ const pages = [
         text: '给表格中的说法打打分吧',
         hint: '1分=完全不贴合，5分=完全贴合',
         statements: [
-          { id: 's1', text: '我在意能否和家附近的邻居处好关系', dims: ['looker', 'laoma'] },
-          { id: 's2', text: '我在意家附近我常去的小店能否一直开下去', dims: ['looker'] },
-          { id: 's3', text: '我在意家附近有没有足够的、舒服的公园和活动的地方', dims: ['hughost', 'looker'] },
-          { id: 's4', text: '我在意自己对住的小区和周边环境有没有归属感', dims: ['looker', 'laoma'] },
-          { id: 's5', text: '我觉得多熟悉熟悉家附近的人和环境，能让我的生活质量变高', dims: ['looker'] },
-          { id: 's6', text: '比起和邻居处关系，我更愿意在自己喜欢的休闲场所里认识新朋友', dims: ['wifier', 'laoma'] }
+          {
+            id: 's1',
+            text: '我很看重能不能跟周围的邻居合得来。',
+            dims: ['laoma']
+          },
+          {
+            id: 's2',
+            text: '我很担心家门口那些老店铺会不会突然关门不干了。',
+            dims: ['looker']
+          },
+          {
+            id: 's3',
+            text: '我很在乎周围有没有那种能让人安安静静待着、挺舒服的地方。',
+            dims: ['hughost']
+          },
+          {
+            id: 's4',
+            text: '我觉得跟邻居之间最好互不打扰，各过各的才自在。',
+            dims: ['oenbye']
+          },
+          {
+            id: 's5',
+            text: '交朋友我还是看有没有共同爱好，住得近不近其实无所谓。',
+            dims: ['wifier']
+          },
+          {
+            id: 's6',
+            text: '虽然看着周围慢慢变样挺可惜的，但我觉得自己做不了什么。',
+            dims: ['bystander']
+          },
+          {
+            id: 's7',
+            text: '我对这一片没什么感情，搬去哪儿住对我来说都差不多。',
+            dims: ['apiao']
+          }
         ]
       },
       {
@@ -1414,11 +1443,11 @@ const pages = [
         type: 'single',
         text: '未来你想不想多花点心思，和家附近的人/环境建立连接？',
         options: [
-          { key: 'A', text: '非常想，已经迫不及待了', scores: { laoma: 3, looker: 2 } },
-          { key: 'B', text: '比较想，愿意试一试', scores: { looker: 2 } },
+          { key: 'A', text: '非常想，已经迫不及待了', scores: { laoma: 1 } },
+          { key: 'B', text: '比较想，愿意试一试', scores: { looker: 1 } },
           { key: 'C', text: '不确定，看心情', scores: { bystander: 1 } },
-          { key: 'D', text: '不太想，没那闲工夫', scores: { oenbye: 1 } },
-          { key: 'E', text: '完全不想，别来沾边', scores: { oenbye: 3 } }
+          { key: 'D', text: '不太想，没那闲工夫', scores: { apiao: 1 } },
+          { key: 'E', text: '完全不想，别来沾边', scores: { wifier: 1 } }
         ]
       },
       {
@@ -1607,6 +1636,11 @@ function selectSingle(qid, key, el, isCheck, isTerminal, skipToQ17) {
   updateSelection(el);
   if (hadAnswer) trackChange(qid);
 
+  if (isCheck && key !== 'C') {
+    setTimeout(() => showRobotScreen(), 400);
+    return;
+  }
+
   if (isTerminal) {
     isTerminated = true;
     const entry = allFlat[currentQIdx];
@@ -1704,58 +1738,82 @@ function prevQuestion() {
 }
 
 // ═══════════════════════════════════════
-// SCORING ENGINE (7 types)
+// SCORING ENGINE V3.0 (选项配额制 最终版)
 // ═══════════════════════════════════════
 function computeAndShowResult() {
   const scores = { looker: 0, laoma: 0, hughost: 0, oenbye: 0, wifier: 0, bystander: 0, apiao: 0 };
 
   pages.forEach(page => {
     page.questions.forEach(q => {
+      if (q.id === 'q13') return;
       if (q.type === 'single') {
         const key = answers[q.id];
         if (key) {
           const opt = q.options.find(o => o.key === key);
-          if (opt && opt.scores) addScores(scores, opt.scores);
+          if (opt && opt.scores) {
+            Object.entries(opt.scores).forEach(([dim, val]) => {
+              scores[dim] += val;
+            });
+          }
         }
       } else if (q.type === 'multi') {
         const keys = answers[q.id] || [];
         keys.forEach(key => {
           const opt = q.options.find(o => o.key === key);
-          if (opt && opt.scores) addScores(scores, opt.scores);
+          if (opt && opt.scores) {
+            Object.entries(opt.scores).forEach(([dim, val]) => {
+              scores[dim] += val;
+            });
+          }
         });
       } else if (q.type === 'rating') {
         q.statements.forEach(s => {
           const val = parseInt(answers[s.id]) || 0;
-          if (val >= 1 && s.dims) {
-            // 1→-1, 2→0, 3→+1, 4→+2, 5→+3
-            const mapped = [0, -1, 0, 1, 2, 3][val];
-            if (mapped > 0) {
-              s.dims.forEach(dim => { scores[dim] = (scores[dim] || 0) + mapped; });
-            }
+          if (val >= 1 && val <= 5 && s.dims && s.dims.length === 1) {
+            const mapped = [0, -2, -1, 0, 1, 2][val];
+            scores[s.dims[0]] += mapped;
           }
         });
       }
     });
   });
 
-  // Find winner
   const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
   let winner = sorted[0][0];
-
-  // If top score is 0, assign apiao as default
-  if (sorted[0][1] === 0) winner = 'apiao';
+  if (sorted[0][1] < 1) {
+    winner = 'apiao';
+  }
 
   showResult(winner, scores);
   submitToBackend(answers, winner, scores);
 }
 
-function addScores(target, src) {
-  Object.entries(src).forEach(([k, v]) => { target[k] = (target[k] || 0) + v; });
-}
+
 
 // ═══════════════════════════════════════
 // RESULT DISPLAY
 // ═══════════════════════════════════════
+function showRobotScreen() {
+  document.getElementById('survey').style.display = 'none';
+  document.getElementById('result').style.display = 'block';
+  window.scrollTo(0, 0);
+
+  document.getElementById('result-badge').textContent = '人机认证失败';
+  document.getElementById('result-badge').style.cssText = 'background: rgba(240,140,106,0.12); color: #f08c6a; border: 1px solid rgba(240,140,106,0.3);';
+
+  document.getElementById('result-title').textContent = '你是机器人吗？';
+  document.getElementById('result-title').style.color = '#f08c6a';
+
+  document.getElementById('result-subtitle').textContent = '好像没有通过人机认证。Are you a robot?';
+
+  document.getElementById('result-image').style.display = 'none';
+
+  document.getElementById('result-verdict').textContent = '请认真阅读题目后再作答。此条数据不计入统计。';
+  document.getElementById('result-verdict').style.borderColor = 'rgba(240,140,106,0.3)';
+
+  document.getElementById('score-bars').innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:20px">此条数据未记录</div>';
+}
+
 function showTerminatedScreen() {
   document.getElementById('survey').style.display = 'none';
   document.getElementById('result').style.display = 'block';
