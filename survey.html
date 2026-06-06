@@ -1854,6 +1854,7 @@ function showResult(winner, scores) {
   document.getElementById('result-subtitle').textContent = p.en;
 
   document.getElementById('result-image').src = p.image;
+  document.getElementById('result-image').style.display = 'block';
   document.getElementById('result-image').style.borderColor = color;
 
   document.getElementById('result-verdict').textContent = p.verdict;
