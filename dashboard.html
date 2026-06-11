@@ -6,6 +6,7 @@
 <title>附近生物图鉴 · 数据看板</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -273,6 +274,12 @@
       </svg>
       刷新
     </button>
+    <button class="btn-refresh" id="btn-download" onclick="downloadExcel()" title="下载原始答题数据">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+        <path d="M8 10V2M8 10L5 7M8 10L11 7M2 14H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      下载Excel
+    </button>
   </div>
 </header>
 
@@ -506,6 +513,8 @@ const supabaseUrl = "https://fpacloguwmxnympiurlr.supabase.co";
 const supabaseKey = "sb_publishable_8eBpItKcvs9BiZPLtZnTlw_G-NGQNIP";
 const sb = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+let rawDataAll = [];
+
 async function loadData() {
   try {
     const { data, error } = await sb.from('survey_results').select('*').order('ts',{ascending:false});
@@ -514,7 +523,66 @@ async function loadData() {
   } catch(e) { console.error('异常:', e); return []; }
 }
 
-async function refreshData() { const data = await loadData(); render(data); updateClock(); }
+async function refreshData() { const data = await loadData(); rawDataAll = data; render(data); updateClock(); }
+
+// ═══════════════════ DOWNLOAD EXCEL ═══════════════════
+function downloadExcel() {
+  if (!rawDataAll.length) { alert('暂无数据可下载，请先刷新数据。'); return; }
+
+  const rows = rawDataAll.map(d => {
+    const ans = d.answers || {};
+    const scores = d.scores || {};
+    return {
+      'ID': d.id || '',
+      '时间戳': new Date(d.ts).toLocaleString('zh-CN'),
+      '人格结果': d.winner || '',
+      'Q1-长期居住': ans.q1 || '',
+      'Q2-年龄段': ans.q2 || '',
+      'Q3-生活状态': ans.q3 || '',
+      'Q4-住所类型': ans.q4 || '',
+      'Q5-居住时长': ans.q5 || '',
+      'Q6-附近成就': (ans.q6 || []).join(', '),
+      'Q7-购物方式': ans.q7 || '',
+      'Q8-求助场景': (ans.q8 || []).join(', '),
+      'Q9-公共副本': ans.q9 || '',
+      'Q10-老店消失': ans.q10 || '',
+      'Q11-公共空间频率': ans.q11 || '',
+      'Q12-光顾功能': (ans.q12 || []).join(', '),
+      'Q13-防沉迷': ans.q13 || '',
+      'Q14-真实动机': (ans.q14 || []).join(', '),
+      'Q15-看重因素': (ans.q15 || []).join(', '),
+      'Q16-公共模式': ans.q16 || '',
+      'Q17-陌生人互动': ans.q17 || '',
+      'Q18-深入交谈': ans.q18 || '',
+      'Q19-听过附近消失': ans.q19 || '',
+      'Q20-附近消失程度': ans.q20 || '',
+      'Q21-态度': ans.q21 || '',
+      'Q22-罪魁祸首': (ans.q22 || []).join(', '),
+      'Q23-观点认同': ans.q23 || '',
+      's1-看重邻里关系': ans.s1 || '',
+      's2-担心老店铺关门': ans.s2 || '',
+      's3-在乎舒适空间': ans.s3 || '',
+      's4-互不打扰': ans.s4 || '',
+      's5-共同爱好优先': ans.s5 || '',
+      's6-可惜但无能为力': ans.s6 || '',
+      's7-无感情漂流': ans.s7 || '',
+      'Q25-未来连接意愿': ans.q25 || '',
+      'Q26-开放题': ans.q26 || '',
+      'looker分': scores.looker || 0,
+      'laoma分': scores.laoma || 0,
+      'hughost分': scores.hughost || 0,
+      'oenbye分': scores.oenbye || 0,
+      'wifier分': scores.wifier || 0,
+      'bystander分': scores.bystander || 0,
+      'apiao分': scores.apiao || 0
+    };
+  });
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '原始答题数据');
+  XLSX.writeFile(wb, `附近消失_原始数据_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
 
 // ═══════════════════ RENDER ═══════════════════
 function render(data) {
