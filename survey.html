@@ -669,6 +669,38 @@
     animation: fadeUp 0.6s 0.7s forwards;
   }
 
+  .robot-actions {
+    display: none;
+    flex-direction: row;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.75s forwards;
+  }
+  .robot-actions.show { display: flex; }
+
+  .btn-robot {
+    padding: 12px 32px;
+    font-size: 14px;
+    font-family: 'Noto Sans SC', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid;
+  }
+  .btn-robot-continue {
+    background: rgba(110,236,184,0.08);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+  .btn-robot-continue:hover { background: rgba(110,236,184,0.16); }
+  .btn-robot-exit {
+    background: transparent;
+    border-color: var(--border2);
+    color: var(--text-muted);
+  }
+  .btn-robot-exit:hover { border-color: var(--text-dim); color: var(--text-dim); }
+
   .score-section {
     margin-bottom: 40px;
     opacity: 0;
@@ -991,11 +1023,15 @@
     <div class="result-subtitle" id="result-subtitle"></div>
     <img class="result-image" id="result-image" src="" alt="人格画像" />
     <div class="result-verdict" id="result-verdict"></div>
-    <div class="score-section">
+    <div class="robot-actions" id="robot-actions">
+      <button class="btn-robot btn-robot-continue" onclick="continueFromRobot()">我是误触，继续答题</button>
+      <button class="btn-robot btn-robot-exit" onclick="exitFromRobot()">退出问卷</button>
+    </div>
+    <div class="score-section" id="score-section">
       <div class="score-section-title">你的七维人格成分</div>
       <div class="score-bars" id="score-bars"></div>
     </div>
-    <div class="share-section">
+    <div class="share-section" id="share-section">
       <div class="share-title">把你的物种分享给朋友</div>
       <div class="share-desc">让身边的人也来测测，看看你们是哪种附近生物</div>
       <div class="share-buttons">
@@ -1808,10 +1844,38 @@ function showRobotScreen() {
 
   document.getElementById('result-image').style.display = 'none';
 
-  document.getElementById('result-verdict').textContent = '请认真阅读题目后再作答。此条数据不计入统计。';
+  document.getElementById('result-verdict').textContent = '请认真阅读题目后再作答。如果只是误触，可以继续答题，此条数据仍计入统计。';
   document.getElementById('result-verdict').style.borderColor = 'rgba(240,140,106,0.3)';
 
-  document.getElementById('score-bars').innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:20px">此条数据未记录</div>';
+  document.getElementById('robot-actions').classList.add('show');
+  document.getElementById('score-section').style.display = 'none';
+  document.getElementById('share-section').style.display = 'none';
+  document.getElementById('score-bars').innerHTML = '';
+}
+
+function continueFromRobot() {
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('survey').style.display = 'block';
+  document.getElementById('robot-actions').classList.remove('show');
+  document.getElementById('score-section').style.display = '';
+  document.getElementById('share-section').style.display = '';
+
+  // 回到 q13 重新作答
+  const q13Idx = allFlat.findIndex(e => e.q.id === 'q13');
+  if (q13Idx !== -1) {
+    currentQIdx = q13Idx;
+    delete answers['q13'];
+    renderCurrentQuestion();
+  }
+}
+
+function exitFromRobot() {
+  document.getElementById('result-badge').textContent = '已退出';
+  document.getElementById('result-title').textContent = '感谢你的时间';
+  document.getElementById('result-title').style.color = '#8899aa';
+  document.getElementById('result-subtitle').textContent = '问卷已结束';
+  document.getElementById('robot-actions').classList.remove('show');
+  document.getElementById('result-verdict').textContent = '你的数据未被记录。欢迎随时回来认真作答。';
 }
 
 function showTerminatedScreen() {
